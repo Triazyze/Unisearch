@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="../build/UniSearch.Api.props" />
+</Project>
