@@ -1,0 +1,18 @@
+# Artefacts de compilation .NET
+bin/
+obj/
+
+# Résultats de tests et couverture
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+*.trx
+
+# Préférences Visual Studio / Rider locales
+.vs/
+*.suo
+*.user
+
+# Configuration locale susceptible de contenir des secrets
+appsettings.Local.json

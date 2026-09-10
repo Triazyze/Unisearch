@@ -1,2 +1,24 @@
+# Fichiers locaux et secrets
 .env
+.env.*
+!.env.example
+!.env.*.example
+
+# Contexte privé pour les agents
 AGENTS.md
+
+# Éditeurs
+.idea/
+.vs/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+
+# Système et journaux
+.DS_Store
+Thumbs.db
+*.log
+
+# Surcharge Docker locale, non partagée
+docker-compose.local.yml
