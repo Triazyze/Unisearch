@@ -1,0 +1,9 @@
+# Dépendances, fichiers Expo et sorties de build : Prettier ne doit pas les modifier.
+node_modules/
+.expo/
+.expo-shared/
+dist/
+web-build/
+coverage/
+android/
+ios/

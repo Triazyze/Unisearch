@@ -1,0 +1,43 @@
+# Configuration partagée par les outils et IDE du monorepo.
+root = true
+
+# Règles de base, applicables à tous les fichiers texte.
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# Le code C# suit la convention .NET habituelle de quatre espaces.
+[*.cs]
+indent_size = 4
+
+# Conventions C# simples : elles améliorent la lisibilité sans imposer un style excessif.
+dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_property = false:suggestion
+dotnet_style_qualification_for_method = false:suggestion
+dotnet_style_qualification_for_event = false:suggestion
+csharp_prefer_braces = true:warning
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = false:suggestion
+
+# StyleCop reste actif. Ces règles sont désactivées car elles relèvent de préférences
+# historiques et créent du bruit sans améliorer la qualité ou la sécurité du MVP.
+dotnet_diagnostic.SA0001.severity = none
+dotnet_diagnostic.SA1101.severity = none
+dotnet_diagnostic.SA1200.severity = none
+dotnet_diagnostic.SA1309.severity = none
+dotnet_diagnostic.SA1413.severity = none
+dotnet_diagnostic.SA1512.severity = none
+dotnet_diagnostic.SA1515.severity = none
+dotnet_diagnostic.SA1633.severity = none
+
+# Les sources TypeScript et les fichiers de configuration utilisent deux espaces.
+[*.{ts,tsx,js,cjs,mjs,json,yml,yaml}]
+indent_size = 2
+
+# Les espaces finaux sont parfois intentionnels dans Markdown (retour à la ligne explicite).
+[*.md]
+trim_trailing_whitespace = false
