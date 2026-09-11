@@ -1,0 +1,22 @@
+services:
+  api:
+    build:
+      target: dev
+
+    environment:
+      MONGODB_URI: ${MONGODB_URI}
+
+    ports:
+      - "${API_PORT}:8080"
+
+    volumes:
+      - ./backend/src:/app/src
+  mongodb:
+    ports:
+      - "${MONGODB_PORT}:27017"
+
+    volumes:
+      - mongo_dev:/data/db
+
+volumes:
+  mongo_dev:
