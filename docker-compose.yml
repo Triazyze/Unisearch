@@ -4,6 +4,19 @@ services:
     build:
       context: ./backend
 
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+
   mongodb:
     image: mongo:8
     restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      start_period: 30s
+      start_interval: 2s
+      interval: 1h
+      timeout: 5s
+      retries: 5
