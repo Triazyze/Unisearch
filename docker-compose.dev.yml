@@ -6,15 +6,17 @@ services:
     environment:
       MONGODB_URI: ${MONGODB_URI}
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      ASPNETCORE_HTTP_PORTS: ${API_PORT}
 
     ports:
-      - "${API_PORT}:8080"
+      - "${API_PORT}:${API_PORT}"
 
     volumes:
       - ./backend/src:/app/src
+
   mongodb:
     ports:
-      - "${MONGODB_PORT}:27017"
+      - "${MONGODB_PORT}:${MONGODB_PORT}"
 
     volumes:
       - mongo_dev:/data/db

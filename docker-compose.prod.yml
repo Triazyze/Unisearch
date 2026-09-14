@@ -1,0 +1,21 @@
+services:
+  api:
+    build:
+      target: prod
+
+    environment:
+      MONGODB_URI: ${MONGODB_URI}
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      ASPNETCORE_HTTP_PORTS: ${API_PORT}
+
+    ports:
+      - "${API_PORT}:${API_PORT}"
+
+  mongodb:
+    volumes:
+      - mongo_prod:/data/db
+
+    restart: always
+
+volumes:
+  mongo_prod:

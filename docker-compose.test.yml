@@ -1,0 +1,12 @@
+services:
+  api:
+    build:
+      target: test
+
+    environment:
+      MONGODB_URI: ${MONGODB_URI}
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+
+  mongodb:
+    tmpfs:
+      - /data/db

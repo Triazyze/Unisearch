@@ -1,8 +1,21 @@
+using MongoDB.Driver;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+
+// MongoDB
+var mongoUri = builder.Configuration["MONGODB_URI"]
+    ?? throw new InvalidOperationException(
+        "MONGODB_URI is not configured."
+    );
+
+builder.Services.AddSingleton<IMongoClient>(
+    new MongoClient(mongoUri)
+);
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
