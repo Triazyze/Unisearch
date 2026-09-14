@@ -15,10 +15,8 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
 
-EXPOSE 8080
-
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl --fail --silent http://localhost:8080/health || exit 1
+    CMD curl --fail --silent http://localhost:${ASPNETCORE_HTTP_PORTS}/health || exit 1
 
 ENTRYPOINT ["dotnet", "watch", "--project", "./src/UniSearch.Api/UniSearch.Api.csproj", "run", "--no-launch-profile"]
 
@@ -51,9 +49,7 @@ RUN apt-get update \
 
 COPY --from=build /app/publish .
 
-EXPOSE 8080
-
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl --fail --silent http://localhost:8080/health || exit 1
+    CMD curl --fail --silent http://localhost:${ASPNETCORE_HTTP_PORTS}/health || exit 1
 
 ENTRYPOINT ["dotnet", "UniSearch.Api.dll"]
