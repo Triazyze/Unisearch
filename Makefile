@@ -2,6 +2,7 @@
 ENV ?=
 
 COMPOSE = docker compose \
+	-p unisearch-$(ENV) \
 	--env-file .env.$(ENV) \
 	-f docker-compose.yml \
 	-f docker-compose.$(ENV).yml

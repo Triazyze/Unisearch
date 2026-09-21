@@ -4,8 +4,9 @@
 !.env.example
 !.env.*.example
 
-# Contexte privé pour les agents
+# Contexte
 AGENTS.md
+UniSearch Context.md
 
 # Éditeurs
 .idea/

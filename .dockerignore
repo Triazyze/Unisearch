@@ -1,0 +1,25 @@
+# Résultats de compilation .NET
+**/bin/
+**/obj/
+
+# Fichiers IDE / éditeurs
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Git
+.git/
+.gitignore
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Configuration locale / secrets
+.env
+.env.*
