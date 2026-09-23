@@ -9,13 +9,16 @@ public sealed class AuthService
 {
     private readonly UserRepository _userRepository;
     private readonly IPasswordHasher<User> _passwordHasher;
+    private readonly JwtService _jwtService;
 
     public AuthService(
         UserRepository userRepository,
-        IPasswordHasher<User> passwordHasher)
+        IPasswordHasher<User> passwordHasher,
+        JwtService jwtService)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
+        _jwtService = jwtService;
     }
 
     public async Task<RegisterUserResult> RegisterAsync(string username, string email, string password)
@@ -51,7 +54,7 @@ public sealed class AuthService
         }
     }
 
-    public async Task<User?> LoginAsync(string identifier, string password)
+    public async Task<string?> LoginAsync(string identifier, string password)
     {
         var normalizedIdentifier = identifier.Trim();
         var user = await _userRepository.FindByUsernameOrEmailAsync(normalizedIdentifier);
@@ -66,6 +69,6 @@ public sealed class AuthService
             return null;
         }
 
-        return user;
+        return _jwtService.GenerateToken(user);
     }
 }
