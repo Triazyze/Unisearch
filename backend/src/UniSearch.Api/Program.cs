@@ -79,6 +79,7 @@ builder.Services.AddSingleton<IMongoDatabase>(serviceProvider =>
         .GetDatabase(databaseName));
 builder.Services.AddSingleton<UserRepository>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<DatabaseSeeder>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
 // Configure Swagger/OpenAPI
@@ -90,6 +91,14 @@ var app = builder.Build();
 await app.Services
     .GetRequiredService<UserRepository>()
     .EnsureIndexesAsync();
+
+using (var scope = app.Services.CreateScope())
+{
+    var databaseSeeder = scope.ServiceProvider
+        .GetRequiredService<DatabaseSeeder>();
+
+    await databaseSeeder.SeedAsync();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
