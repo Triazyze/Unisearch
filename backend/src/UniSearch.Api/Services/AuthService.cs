@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using MongoDB.Driver;
-using UniSearch.Api.Models;
+using UniSearch.Api.Models.Entities;
 using UniSearch.Api.Repositories;
 
 namespace UniSearch.Api.Services;

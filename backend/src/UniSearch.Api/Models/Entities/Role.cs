@@ -1,4 +1,4 @@
-namespace UniSearch.Api.Models;
+namespace UniSearch.Api.Models.Entities;
 
 public enum Role
 {

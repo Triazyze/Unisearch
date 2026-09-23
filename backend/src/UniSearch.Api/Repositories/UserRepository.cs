@@ -1,5 +1,5 @@
 using MongoDB.Driver;
-using UniSearch.Api.Models;
+using UniSearch.Api.Models.Entities;
 
 namespace UniSearch.Api.Repositories;
 

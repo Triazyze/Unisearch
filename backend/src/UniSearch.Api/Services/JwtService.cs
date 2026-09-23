@@ -2,7 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using UniSearch.Api.Models;
+using UniSearch.Api.Models.Entities;
 
 namespace UniSearch.Api.Services;
 
