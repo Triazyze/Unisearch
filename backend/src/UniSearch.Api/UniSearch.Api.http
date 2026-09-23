@@ -1,6 +1,12 @@
 @UniSearch.Api_HostAddress = http://localhost:5278
 
-GET {{UniSearch.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+POST {{UniSearch.Api_HostAddress}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "player1",
+  "email": "player1@example.com",
+  "password": "SecurePassword1!"
+}
 
 ###

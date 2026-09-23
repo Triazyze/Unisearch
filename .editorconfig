@@ -32,7 +32,10 @@ dotnet_diagnostic.SA1309.severity = none
 dotnet_diagnostic.SA1413.severity = none
 dotnet_diagnostic.SA1512.severity = none
 dotnet_diagnostic.SA1515.severity = none
+dotnet_diagnostic.SA1600.severity = none
+dotnet_diagnostic.SA1602.severity = none
 dotnet_diagnostic.SA1633.severity = none
+dotnet_diagnostic.SA1210.severity = none
 
 # Les sources TypeScript et les fichiers de configuration utilisent deux espaces.
 [*.{ts,tsx,js,cjs,mjs,json,yml,yaml}]
