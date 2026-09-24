@@ -7,10 +7,12 @@ public class PlayerResult
 {
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
-    required public string Id { get; set; }
+    public string Id { get; set; } = string.Empty;
 
+    [BsonRepresentation(BsonType.ObjectId)]
     required public string UserId { get; set; }
 
+    [BsonRepresentation(BsonType.ObjectId)]
     required public string GridId { get; set; }
 
     required public int Time { get; set; }

@@ -1,6 +1,6 @@
 namespace UniSearch.Api.Models.Dtos;
 
-public sealed class GridValidationRequest
+public sealed class GridVerificationRequest
 {
     required public List<string> Letters { get; set; }
 
