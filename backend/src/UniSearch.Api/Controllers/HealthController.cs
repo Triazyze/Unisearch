@@ -23,8 +23,7 @@ public class HealthController : ControllerBase
             await _mongoClient
                 .GetDatabase("admin")
                 .RunCommandAsync<BsonDocument>(
-                    new BsonDocument("ping", 1)
-                );
+                    new BsonDocument("ping", 1));
 
             return Ok(new
             {
@@ -34,8 +33,7 @@ public class HealthController : ControllerBase
         catch (MongoException)
         {
             return StatusCode(
-                StatusCodes.Status503ServiceUnavailable
-            );
+                StatusCodes.Status503ServiceUnavailable);
         }
     }
 }

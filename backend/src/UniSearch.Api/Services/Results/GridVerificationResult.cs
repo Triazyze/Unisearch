@@ -6,6 +6,6 @@ public enum GridVerificationResult
     GridNotFound,
     LettersInvalid,
     WordsInvalid,
-    TracesIncomplete,
+    TraceMismatch,
     TracesInvalid
 }

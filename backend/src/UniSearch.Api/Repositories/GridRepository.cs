@@ -17,4 +17,9 @@ public sealed class GridRepository
         var filter = Builders<Grid>.Filter.Eq(grid => grid.Id, id);
         return await _grids.Find(filter).FirstOrDefaultAsync();
     }
+
+    public async Task CreateAsync(Grid grid)
+    {
+        await _grids.InsertOneAsync(grid);
+    }
 }

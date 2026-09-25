@@ -11,17 +11,36 @@ public sealed class DatabaseSeeder
     private const string PlayerEmail = "player@unisearch.local";
     private const string AdminUsername = "admin";
     private const string AdminEmail = "admin@unisearch.local";
+    private const string VerificationGridId = "66f000000000000000000001";
+    private const int VerificationGridSize = 4;
+    private const string VerificationGridDifficulty = "Test";
+
+    private static readonly List<string> VerificationGridLetters =
+    [
+        "CHAT",
+        "XXXX",
+        "XXXX",
+        "XXXX",
+    ];
+
+    private static readonly List<string> VerificationGridWords =
+    [
+        "CHAT",
+    ];
 
     private readonly UserRepository _userRepository;
+    private readonly GridRepository _gridRepository;
     private readonly IPasswordHasher<User> _passwordHasher;
     private readonly IConfiguration _configuration;
 
     public DatabaseSeeder(
         UserRepository userRepository,
+        GridRepository gridRepository,
         IPasswordHasher<User> passwordHasher,
         IConfiguration configuration)
     {
         _userRepository = userRepository;
+        _gridRepository = gridRepository;
         _passwordHasher = passwordHasher;
         _configuration = configuration;
     }
@@ -44,6 +63,17 @@ public sealed class DatabaseSeeder
             AdminEmail,
             GetRequiredConfigurationValue("SEED_ADMIN_PASSWORD"),
             Role.Admin);
+
+        await SeedVerificationGridAsync();
+    }
+
+    private static bool IsExpectedVerificationGrid(Grid grid)
+    {
+        return grid.Id == VerificationGridId
+            && grid.Size == VerificationGridSize
+            && grid.Letters.SequenceEqual(VerificationGridLetters)
+            && grid.Words.SequenceEqual(VerificationGridWords)
+            && grid.Difficulty == VerificationGridDifficulty;
     }
 
     private static bool IsExpectedSeedUser(User? userByUsername, User? userByEmail, string username, string email, Role role)
@@ -89,6 +119,33 @@ public sealed class DatabaseSeeder
 
         throw new InvalidOperationException(
             $"Le seed ne peut pas créer le compte {username}, car ses identifiants sont déjà utilisés.");
+    }
+
+    private async Task SeedVerificationGridAsync()
+    {
+        var existingGrid = await _gridRepository.FindByIdAsync(VerificationGridId);
+        if (existingGrid is null)
+        {
+            var grid = new Grid
+            {
+                Id = VerificationGridId,
+                Size = VerificationGridSize,
+                Letters = new List<string>(VerificationGridLetters),
+                Words = new List<string>(VerificationGridWords),
+                Difficulty = VerificationGridDifficulty,
+            };
+
+            await _gridRepository.CreateAsync(grid);
+            return;
+        }
+
+        if (IsExpectedVerificationGrid(existingGrid))
+        {
+            return;
+        }
+
+        throw new InvalidOperationException(
+            "Le seed ne peut pas créer la grille de vérification, car son identifiant est déjà utilisé.");
     }
 
     private string GetRequiredConfigurationValue(string key)

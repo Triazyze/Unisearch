@@ -1,7 +1,9 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using MongoDB.Driver;
 using UniSearch.Api.Models.Entities;
 using UniSearch.Api.Repositories;
@@ -49,6 +51,7 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.MapInboundClaims = false;
         options.TokenValidationParameters =
             new TokenValidationParameters
             {
@@ -63,6 +66,9 @@ builder.Services
 
                 ValidateLifetime = true,
                 ClockSkew = TimeSpan.Zero,
+
+                NameClaimType = JwtRegisteredClaimNames.Sub,
+                RoleClaimType = "role",
             };
     });
 
@@ -82,14 +88,35 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<DatabaseSeeder>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
+builder.Services.AddSingleton<GridRepository>();
+builder.Services.AddSingleton<PlayerResultRepository>();
+builder.Services.AddScoped<GridVerificationService>();
+
 // Configure Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Description = "Saisissez uniquement le jeton JWT, sans le préfixe Bearer.",
+    });
+
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = [],
+    });
+});
 
 var app = builder.Build();
 
 await app.Services
     .GetRequiredService<UserRepository>()
+    .EnsureIndexesAsync();
+await app.Services
+    .GetRequiredService<PlayerResultRepository>()
     .EnsureIndexesAsync();
 
 using (var scope = app.Services.CreateScope())

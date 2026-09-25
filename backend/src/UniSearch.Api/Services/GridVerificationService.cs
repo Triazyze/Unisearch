@@ -23,28 +23,28 @@ public sealed class GridVerificationService
             return GridVerificationResult.GridNotFound;
         }
 
-        var letters = request.Letters;
-        var words = request.Words;
-        var traces = request.Traces;
+        var submittedLetters = request.Letters;
+        var submittedWords = request.Words;
+        var submittedTraces = request.Traces;
 
         // Vérification des lettres
-        if (!AreLettersValid(grid, letters))
+        if (!AreLettersValid(grid, submittedLetters))
         {
             return GridVerificationResult.LettersInvalid;
         }
 
         // Vérification des mots
-        if (!AreWordsValid(grid, words))
+        if (!AreWordsValid(grid, submittedWords))
         {
             return GridVerificationResult.WordsInvalid;
         }
 
-        if (!AreTracesComplete(grid, traces))
+        if (!AreTracesMatchingWords(grid, submittedTraces))
         {
-            return GridVerificationResult.TracesIncomplete;
+            return GridVerificationResult.TraceMismatch;
         }
 
-        if (!AreTracesValid(grid, traces))
+        if (!AreTracesValid(grid, submittedTraces))
         {
             return GridVerificationResult.TracesInvalid;
         }
@@ -72,23 +72,76 @@ public sealed class GridVerificationService
         return GridVerificationResult.Validated;
     }
 
-    private static bool AreLettersValid(Grid grid, List<string> letters)
+    private static bool AreLettersValid(Grid grid, List<string> submittedLetters)
     {
-        throw new NotImplementedException("La vérification des lettres n'est pas encore implémentée.");
+        return grid.Letters.SequenceEqual(submittedLetters);
     }
 
-    private static bool AreWordsValid(Grid grid, List<string> words)
+    private static bool AreWordsValid(Grid grid, List<string> submittedWords)
     {
-        throw new NotImplementedException("La vérification des mots n'est pas encore implémentée.");
+        return grid.Words.OrderBy(word => word).SequenceEqual(submittedWords.OrderBy(word => word));
     }
 
-    private static bool AreTracesComplete(Grid grid, List<Trace> traces)
+    private static bool AreTracesMatchingWords(Grid grid, List<Trace> submittedTraces)
     {
-        throw new NotImplementedException("La vérification de la complétude des traces n'est pas encore implémentée.");
+        return grid.Words.Count == submittedTraces.Count && grid.Words.All(word => submittedTraces.Any(trace => trace.Word == word));
     }
 
-    private static bool AreTracesValid(Grid grid, List<Trace> traces)
+    private static bool IsCoordinateInsideGrid(int row, int column, int gridSize)
     {
-        throw new NotImplementedException("La vérification de la validité des traces n'est pas encore implémentée.");
+        return row >= 0
+            && row < gridSize
+            && column >= 0
+            && column < gridSize;
+    }
+
+    private static bool AreTracesValid(Grid grid, List<Trace> submittedTraces)
+    {
+        foreach (var trace in submittedTraces)
+        {
+            // Vérifie que les coordonnées de début et de fin sont à l'intérieur de la grille
+            var hasValidCoordinates =
+                IsCoordinateInsideGrid(trace.StartRow, trace.StartColumn, grid.Size)
+                && IsCoordinateInsideGrid(trace.EndRow, trace.EndColumn, grid.Size);
+            if (!hasValidCoordinates)
+            {
+                return false;
+            }
+
+            // Vérifie la direction du tracé
+            var rowDelta = trace.EndRow - trace.StartRow;
+            var columnDelta = trace.EndColumn - trace.StartColumn;
+            if (rowDelta != 0 && columnDelta != 0 && Math.Abs(rowDelta) != Math.Abs(columnDelta))
+            {
+                return false;
+            }
+
+            // Vérifie que la longueur du tracé correspond à la longueur du mot
+            if (Math.Max(Math.Abs(rowDelta), Math.Abs(columnDelta)) + 1 != trace.Word.Length)
+            {
+                return false;
+            }
+
+            // Vérifie que les lettres tracées correspondent au mot ou à son inverse
+            var rowStep = Math.Sign(rowDelta);
+            var columnStep = Math.Sign(columnDelta);
+            var tracedLetters = new char[trace.Word.Length];
+
+            for (var i = 0; i < trace.Word.Length; i++)
+            {
+                var row = trace.StartRow + (i * rowStep);
+                var column = trace.StartColumn + (i * columnStep);
+                tracedLetters[i] = grid.Letters[row][column];
+            }
+
+            var tracedWord = new string(tracedLetters);
+            var reversedWord = new string(trace.Word.Reverse().ToArray());
+            if (tracedWord != trace.Word && tracedWord != reversedWord)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
