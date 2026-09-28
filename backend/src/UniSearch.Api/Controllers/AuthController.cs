@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using UniSearch.Api.Errors;
 using UniSearch.Api.Models.Dtos;
 using UniSearch.Api.Services;
 
@@ -17,7 +18,7 @@ public sealed class AuthController : ControllerBase
 
     [HttpPost("register")]
     [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
@@ -42,8 +43,8 @@ public sealed class AuthController : ControllerBase
 
     [HttpPost("login")]
     [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login(LoginRequest request)
     {
         var token = await _authService.LoginAsync(
@@ -52,10 +53,7 @@ public sealed class AuthController : ControllerBase
 
         if (token is null)
         {
-            return Unauthorized(new
-            {
-                message = "Identifiant ou mot de passe invalide.",
-            });
+            return Unauthorized(ApiErrors.Unauthorized);
         }
 
         return Ok(new LoginResponse

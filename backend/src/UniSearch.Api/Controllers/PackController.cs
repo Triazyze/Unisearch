@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UniSearch.Api.Models.Entities;
+using UniSearch.Api.Models.Dtos;
 using UniSearch.Api.Services;
 
 namespace UniSearch.Api.Controllers;
@@ -19,8 +20,8 @@ public sealed class PackController : ControllerBase
     [HttpGet]
     [Authorize(Roles = nameof(Role.Player))]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetTestPackAsync()
     {

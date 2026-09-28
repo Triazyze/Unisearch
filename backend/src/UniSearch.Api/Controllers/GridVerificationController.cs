@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using UniSearch.Api.Errors;
 using UniSearch.Api.Models.Dtos;
 using UniSearch.Api.Models.Entities;
 using UniSearch.Api.Services;
@@ -22,9 +23,9 @@ public sealed class GridVerificationController : ControllerBase
     [HttpPost]
     [Authorize(Roles = nameof(Role.Player))]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> VerifyGrid(string gridId, [FromBody] GridVerificationRequest request)
@@ -32,26 +33,12 @@ public sealed class GridVerificationController : ControllerBase
         var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
         if (string.IsNullOrWhiteSpace(userId))
         {
-            return Unauthorized(new
-            {
-                message = "Token d'authentification invalide.",
-            });
-        }
-
-        if (request is null)
-        {
-            return BadRequest(new
-            {
-                message = "Requête invalide.",
-            });
+            return Unauthorized(ApiErrors.Unauthorized);
         }
 
         if (!ObjectId.TryParse(gridId, out _))
         {
-            return BadRequest(new
-            {
-                message = "L'identifiant de grille est invalide.",
-            });
+            return BadRequest(ApiErrors.BadRequest);
         }
 
         var result = await _gridVerificationService.VerifyGridAsync(gridId, userId, request);
