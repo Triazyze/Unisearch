@@ -1,5 +1,5 @@
 using MongoDB.Driver;
-using UniSearch.Api.Models;
+using UniSearch.Api.Models.Entities;
 
 namespace UniSearch.Api.Repositories;
 
@@ -26,15 +26,18 @@ public sealed class UserRepository
         await _users.InsertOneAsync(user);
     }
 
+    // Vérifie si l'index du nom d'utilisateur ou de son email existent déjà dans la base de données
     public async Task EnsureIndexesAsync()
     {
         var indexes = new[]
         {
             new CreateIndexModel<User>(
-                Builders<User>.IndexKeys.Ascending(user => user.Username),
+                Builders<User>.IndexKeys
+                .Ascending(user => user.Username),
                 new CreateIndexOptions { Name = "ux_users_username", Unique = true }),
             new CreateIndexModel<User>(
-                Builders<User>.IndexKeys.Ascending(user => user.Email),
+                Builders<User>.IndexKeys
+                .Ascending(user => user.Email),
                 new CreateIndexOptions { Name = "ux_users_email", Unique = true }),
         };
 

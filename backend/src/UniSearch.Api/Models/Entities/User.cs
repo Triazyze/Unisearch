@@ -1,7 +1,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace UniSearch.Api.Models;
+namespace UniSearch.Api.Models.Entities;
 
 public class User
 {
