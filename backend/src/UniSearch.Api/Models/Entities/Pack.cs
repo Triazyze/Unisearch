@@ -9,7 +9,5 @@ public class Pack
     [BsonRepresentation(BsonType.ObjectId)]
     required public string Id { get; set; }
 
-    required public DateTime Date { get; set; }
-
     required public List<string> GridIds { get; set; }
 }

@@ -88,6 +88,8 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<DatabaseSeeder>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
+builder.Services.AddSingleton<PackRepository>();
+builder.Services.AddScoped<PackService>();
 builder.Services.AddSingleton<GridRepository>();
 builder.Services.AddSingleton<PlayerResultRepository>();
 builder.Services.AddScoped<GridVerificationService>();
