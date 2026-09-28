@@ -11,8 +11,6 @@ public sealed class DatabaseSeeder
     private const string PlayerEmail = "player@unisearch.local";
     private const string AdminUsername = "admin";
     private const string AdminEmail = "admin@unisearch.local";
-    private const string TestPackId = "66f000000000000000000010";
-
     private static readonly Grid FirstTestGrid = new ()
     {
         Id = "66f000000000000000000001",
@@ -29,6 +27,7 @@ public sealed class DatabaseSeeder
             "CHAT",
         ],
         Difficulty = "Test",
+        PackDate = null,
     };
 
     private static readonly Grid SecondTestGrid = new ()
@@ -51,24 +50,22 @@ public sealed class DatabaseSeeder
             "LION",
         ],
         Difficulty = "Test",
+        PackDate = null,
     };
 
     private readonly UserRepository _userRepository;
     private readonly GridRepository _gridRepository;
-    private readonly PackRepository _packRepository;
     private readonly IPasswordHasher<User> _passwordHasher;
     private readonly IConfiguration _configuration;
 
     public DatabaseSeeder(
         UserRepository userRepository,
         GridRepository gridRepository,
-        PackRepository packRepository,
         IPasswordHasher<User> passwordHasher,
         IConfiguration configuration)
     {
         _userRepository = userRepository;
         _gridRepository = gridRepository;
-        _packRepository = packRepository;
         _passwordHasher = passwordHasher;
         _configuration = configuration;
     }
@@ -94,7 +91,6 @@ public sealed class DatabaseSeeder
 
         await SeedGridAsync(FirstTestGrid);
         await SeedGridAsync(SecondTestGrid);
-        await SeedTestPackAsync();
     }
 
     private static bool IsExpectedGrid(Grid existingGrid, Grid expectedGrid)
@@ -103,7 +99,8 @@ public sealed class DatabaseSeeder
             && existingGrid.Size == expectedGrid.Size
             && existingGrid.Letters.SequenceEqual(expectedGrid.Letters)
             && existingGrid.Words.SequenceEqual(expectedGrid.Words)
-            && existingGrid.Difficulty == expectedGrid.Difficulty;
+            && existingGrid.Difficulty == expectedGrid.Difficulty
+            && existingGrid.PackDate == expectedGrid.PackDate;
     }
 
     private static bool IsExpectedSeedUser(User? userByUsername, User? userByEmail, string username, string email, Role role)
@@ -162,35 +159,13 @@ public sealed class DatabaseSeeder
 
         if (IsExpectedGrid(existingGrid, expectedGrid))
         {
+            // Matérialise PackDate pour les grilles créées avant ce champ.
+            await _gridRepository.SetPackDateAsync(expectedGrid.Id, expectedGrid.PackDate);
             return;
         }
 
         throw new InvalidOperationException(
             "Le seed ne peut pas créer la grille " + expectedGrid.Id + ", car son identifiant est déjà utilisé.");
-    }
-
-    private async Task SeedTestPackAsync()
-    {
-        var existingPack = await _packRepository.FindByIdAsync(TestPackId);
-        if (existingPack is null)
-        {
-            var testPack = new Pack
-            {
-                Id = TestPackId,
-                GridIds = [FirstTestGrid.Id, SecondTestGrid.Id],
-            };
-
-            await _packRepository.CreateAsync(testPack);
-            return;
-        }
-
-        if (existingPack.GridIds.SequenceEqual([FirstTestGrid.Id, SecondTestGrid.Id]))
-        {
-            return;
-        }
-
-        throw new InvalidOperationException(
-            "Le seed ne peut pas créer le pack de test, car son identifiant est déjà utilisé.");
     }
 
     private string GetRequiredConfigurationValue(string key)

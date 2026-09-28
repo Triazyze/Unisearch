@@ -5,47 +5,32 @@ namespace UniSearch.Api.Services;
 
 public sealed class PackService
 {
-    private readonly PackRepository _packRepository;
     private readonly GridRepository _gridRepository;
 
-    public PackService(PackRepository packRepository, GridRepository gridRepository)
+    public PackService(GridRepository gridRepository)
     {
-        _packRepository = packRepository;
         _gridRepository = gridRepository;
     }
 
     public async Task<PlayerPackResponse?> GetTestPackAsync()
     {
-        var pack = await _packRepository.FindByIdAsync("66f000000000000000000010");
-        if (pack is null)
+        var testGrids = await _gridRepository.FindByPackDateAsync(null);
+        if (testGrids.Count != 2)
         {
             return null;
         }
 
-        var grids = new List<PlayerGridResponse>();
-
-        foreach (var gridId in pack.GridIds)
+        return new PlayerPackResponse
         {
-            var grid = await _gridRepository.FindByIdAsync(gridId);
-            if (grid is null)
-            {
-                return null;
-            }
-
-            grids.Add(new PlayerGridResponse
+            PackDate = null,
+            Grids = testGrids.Select(grid => new PlayerGridResponse
             {
                 Id = grid.Id,
                 Size = grid.Size,
                 Letters = [.. grid.Letters],
                 Words = [.. grid.Words],
                 Difficulty = grid.Difficulty,
-            });
-        }
-
-        return new PlayerPackResponse
-        {
-            Id = pack.Id,
-            Grids = grids,
+            }).ToList(),
         };
     }
 }

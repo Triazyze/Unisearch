@@ -127,7 +127,6 @@ builder.Services.AddSingleton<IMongoDatabase>(serviceProvider =>
         .GetDatabase(databaseName));
 builder.Services.AddSingleton<UserRepository>();
 builder.Services.AddSingleton<GridRepository>();
-builder.Services.AddSingleton<PackRepository>();
 builder.Services.AddSingleton<PlayerResultRepository>();
 
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();

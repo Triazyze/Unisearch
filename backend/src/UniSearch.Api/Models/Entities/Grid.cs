@@ -16,4 +16,6 @@ public class Grid
     required public List<string> Words { get; set; }
 
     required public string Difficulty { get; set; }
+
+    required public DateTime? PackDate { get; set; }
 }
