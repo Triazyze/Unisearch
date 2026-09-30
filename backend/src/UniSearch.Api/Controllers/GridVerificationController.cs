@@ -28,8 +28,8 @@ public sealed class GridVerificationController : ControllerBase
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> VerifyGrid(string gridId, [FromBody] GridVerificationRequest request)
     {
         var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
@@ -51,26 +51,11 @@ public sealed class GridVerificationController : ControllerBase
             {
                 message = "Grille vérifiée avec succès.",
             }),
-            GridVerificationResult.GridNotFound => NotFound(new
-            {
-                message = "Grille non trouvée.",
-            }),
-            GridVerificationResult.LettersInvalid => UnprocessableEntity(new
-            {
-                message = "Les lettres soumises ne correspondent pas à la grille.",
-            }),
-            GridVerificationResult.WordsInvalid => UnprocessableEntity(new
-            {
-                message = "Les mots soumis ne correspondent pas à la grille.",
-            }),
-            GridVerificationResult.TraceMismatch => UnprocessableEntity(new
-            {
-                message = "Les tracés soumis ne correspondent pas aux mots.",
-            }),
-            GridVerificationResult.TracesInvalid => UnprocessableEntity(new
-            {
-                message = "Les tracés soumis sont invalides.",
-            }),
+            GridVerificationResult.GridNotFound => NotFound(ApiErrors.GridNotFound),
+            GridVerificationResult.LettersInvalid => UnprocessableEntity(ApiErrors.LettersInvalid),
+            GridVerificationResult.WordsInvalid => UnprocessableEntity(ApiErrors.WordsInvalid),
+            GridVerificationResult.TraceMismatch => UnprocessableEntity(ApiErrors.TraceMismatch),
+            GridVerificationResult.TracesInvalid => UnprocessableEntity(ApiErrors.TracesInvalid),
             _ => throw new InvalidOperationException("Résultat inattendu lors de la vérification de la grille."),
         };
     }

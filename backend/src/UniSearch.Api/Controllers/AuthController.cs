@@ -21,7 +21,7 @@ public sealed class AuthController : ControllerBase
     [HttpPost("register")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
         var result = await _authService.RegisterAsync(
@@ -35,10 +35,7 @@ public sealed class AuthController : ControllerBase
             {
                 message = $"Joueur {request.Username} a été créé avec succès.",
             }),
-            RegisterUserResult.Duplicate => Conflict(new
-            {
-                message = "Utilisateur ou email déjà existant.",
-            }),
+            RegisterUserResult.Duplicate => Conflict(ApiErrors.UserAlreadyExists),
             _ => throw new InvalidOperationException("Resultat inattendu lors de l'enregistrement de l'utilisateur."),
         };
     }

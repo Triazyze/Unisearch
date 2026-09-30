@@ -4,5 +4,5 @@ public sealed class PlayerPackResponse
 {
     required public PackResponse Pack { get; init; }
 
-    public List<PlayerGridResponse> Grids { get; init; } = [];
+    public List<GridResponse> Grids { get; init; } = [];
 }

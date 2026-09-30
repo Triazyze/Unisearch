@@ -29,7 +29,7 @@ public sealed class PackService
                 Name = TestPackName,
                 Date = null,
             },
-            Grids = testGrids.Select(grid => new PlayerGridResponse
+            Grids = testGrids.Select(grid => new GridResponse
             {
                 Id = grid.Id,
                 Size = grid.Size,

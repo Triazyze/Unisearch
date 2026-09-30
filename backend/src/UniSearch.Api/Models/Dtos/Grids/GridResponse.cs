@@ -1,6 +1,6 @@
 namespace UniSearch.Api.Models.Dtos.Grids;
 
-public sealed class PlayerGridResponse
+public sealed class GridResponse
 {
     public string Id { get; init; } = string.Empty;
 

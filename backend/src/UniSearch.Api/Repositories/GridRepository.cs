@@ -18,6 +18,17 @@ public sealed class GridRepository
         return await _grids.Find(filter).FirstOrDefaultAsync();
     }
 
+    public async Task<List<Grid>> FindAllAsync()
+    {
+        return await _grids.Find(Builders<Grid>.Filter.Empty).ToListAsync();
+    }
+
+    public async Task<List<Grid>> FindUnassignedGridsAsync()
+    {
+        var filter = Builders<Grid>.Filter.Eq(grid => grid.Pack, null);
+        return await _grids.Find(filter).ToListAsync();
+    }
+
     public async Task<List<Grid>> FindByPackNameAsync(string packName)
     {
         var filter = Builders<Grid>.Filter.Eq(grid => grid.Pack!.Name, packName);
@@ -29,13 +40,11 @@ public sealed class GridRepository
         await _grids.InsertOneAsync(grid);
     }
 
-    public async Task SetPackAsync(string id, GridPack? pack)
+    public async Task SetPackAsync(string id, Grid.PackDetails? pack)
     {
         var filter = Builders<Grid>.Filter.Eq(grid => grid.Id, id);
         var update = Builders<Grid>.Update
-            .Set(grid => grid.Pack, pack)
-            .Unset("PackName")
-            .Unset("PackDate");
+            .Set(grid => grid.Pack, pack);
 
         await _grids.UpdateOneAsync(filter, update);
     }

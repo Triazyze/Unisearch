@@ -15,7 +15,9 @@ public class PlayerResult
     [BsonRepresentation(BsonType.ObjectId)]
     required public string GridId { get; set; }
 
+    [BsonElement("time")]
     required public int Time { get; set; }
 
+    [BsonElement("traceAttempts")]
     required public int TraceAttempts { get; set; }
 }

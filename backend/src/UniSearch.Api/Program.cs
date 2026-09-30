@@ -37,7 +37,7 @@ builder.Services.AddRateLimiter(options =>
             httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 5,
+                PermitLimit = 10,
                 Window = TimeSpan.FromMinutes(1),
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                 QueueLimit = 0,
@@ -133,6 +133,7 @@ builder.Services.AddSingleton<PlayerResultRepository>();
 
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<GridCreationService>();
 builder.Services.AddScoped<PackService>();
 builder.Services.AddScoped<GridVerificationService>();
 builder.Services.AddScoped<DatabaseSeeder>();

@@ -27,7 +27,7 @@ public sealed class DatabaseSeeder
             "CHAT",
         ],
         Difficulty = "Test",
-        Pack = new GridPack
+        Pack = new Grid.PackDetails
         {
             Name = "test",
             Date = null,
@@ -54,7 +54,7 @@ public sealed class DatabaseSeeder
             "LION",
         ],
         Difficulty = "Test",
-        Pack = new GridPack
+        Pack = new Grid.PackDetails
         {
             Name = "test",
             Date = null,
