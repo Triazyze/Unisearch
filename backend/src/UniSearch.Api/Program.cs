@@ -11,6 +11,8 @@ using UniSearch.Api.Errors;
 using UniSearch.Api.Models.Entities;
 using UniSearch.Api.Repositories;
 using UniSearch.Api.Services;
+using UniSearch.Api.Services.Authentication;
+using UniSearch.Api.Services.Grids;
 
 const string ApiRateLimitPolicy = "api";
 

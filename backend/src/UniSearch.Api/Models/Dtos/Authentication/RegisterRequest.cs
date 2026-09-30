@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace UniSearch.Api.Models.Dtos;
+namespace UniSearch.Api.Models.Dtos.Authentication;
 
 public sealed class RegisterRequest
 {

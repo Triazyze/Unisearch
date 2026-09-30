@@ -18,9 +18,9 @@ public sealed class GridRepository
         return await _grids.Find(filter).FirstOrDefaultAsync();
     }
 
-    public async Task<List<Grid>> FindByPackDateAsync(DateTime? packDate)
+    public async Task<List<Grid>> FindByPackNameAsync(string packName)
     {
-        var filter = Builders<Grid>.Filter.Eq(grid => grid.PackDate, packDate);
+        var filter = Builders<Grid>.Filter.Eq(grid => grid.Pack!.Name, packName);
         return await _grids.Find(filter).ToListAsync();
     }
 
@@ -29,10 +29,13 @@ public sealed class GridRepository
         await _grids.InsertOneAsync(grid);
     }
 
-    public async Task SetPackDateAsync(string id, DateTime? packDate)
+    public async Task SetPackAsync(string id, GridPack? pack)
     {
         var filter = Builders<Grid>.Filter.Eq(grid => grid.Id, id);
-        var update = Builders<Grid>.Update.Set(grid => grid.PackDate, packDate);
+        var update = Builders<Grid>.Update
+            .Set(grid => grid.Pack, pack)
+            .Unset("PackName")
+            .Unset("PackDate");
 
         await _grids.UpdateOneAsync(filter, update);
     }

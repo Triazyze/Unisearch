@@ -27,7 +27,11 @@ public sealed class DatabaseSeeder
             "CHAT",
         ],
         Difficulty = "Test",
-        PackDate = null,
+        Pack = new GridPack
+        {
+            Name = "test",
+            Date = null,
+        },
     };
 
     private static readonly Grid SecondTestGrid = new ()
@@ -50,7 +54,11 @@ public sealed class DatabaseSeeder
             "LION",
         ],
         Difficulty = "Test",
-        PackDate = null,
+        Pack = new GridPack
+        {
+            Name = "test",
+            Date = null,
+        },
     };
 
     private readonly UserRepository _userRepository;
@@ -93,14 +101,13 @@ public sealed class DatabaseSeeder
         await SeedGridAsync(SecondTestGrid);
     }
 
-    private static bool IsExpectedGrid(Grid existingGrid, Grid expectedGrid)
+    private static bool HasExpectedGridContent(Grid existingGrid, Grid expectedGrid)
     {
         return existingGrid.Id == expectedGrid.Id
             && existingGrid.Size == expectedGrid.Size
             && existingGrid.Letters.SequenceEqual(expectedGrid.Letters)
             && existingGrid.Words.SequenceEqual(expectedGrid.Words)
-            && existingGrid.Difficulty == expectedGrid.Difficulty
-            && existingGrid.PackDate == expectedGrid.PackDate;
+            && existingGrid.Difficulty == expectedGrid.Difficulty;
     }
 
     private static bool IsExpectedSeedUser(User? userByUsername, User? userByEmail, string username, string email, Role role)
@@ -157,10 +164,10 @@ public sealed class DatabaseSeeder
             return;
         }
 
-        if (IsExpectedGrid(existingGrid, expectedGrid))
+        if (HasExpectedGridContent(existingGrid, expectedGrid))
         {
-            // Matérialise PackDate pour les grilles créées avant ce champ.
-            await _gridRepository.SetPackDateAsync(expectedGrid.Id, expectedGrid.PackDate);
+            // Met à niveau les métadonnées de pack des grilles de test déjà seedées.
+            await _gridRepository.SetPackAsync(expectedGrid.Id, expectedGrid.Pack);
             return;
         }
 

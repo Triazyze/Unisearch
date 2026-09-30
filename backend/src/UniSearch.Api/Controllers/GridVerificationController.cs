@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UniSearch.Api.Errors;
 using UniSearch.Api.Models.Dtos;
+using UniSearch.Api.Models.Dtos.Grids;
 using UniSearch.Api.Models.Entities;
-using UniSearch.Api.Services;
+using UniSearch.Api.Services.Grids;
+using UniSearch.Api.Services.Grids.Results;
 using MongoDB.Bson;
 
 namespace UniSearch.Api.Controllers;

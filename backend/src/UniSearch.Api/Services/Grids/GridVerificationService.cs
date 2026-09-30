@@ -1,8 +1,9 @@
+using UniSearch.Api.Models.Dtos.Grids;
 using UniSearch.Api.Models.Entities;
-using UniSearch.Api.Models.Dtos;
 using UniSearch.Api.Repositories;
+using UniSearch.Api.Services.Grids.Results;
 
-namespace UniSearch.Api.Services;
+namespace UniSearch.Api.Services.Grids;
 
 public sealed class GridVerificationService
 {

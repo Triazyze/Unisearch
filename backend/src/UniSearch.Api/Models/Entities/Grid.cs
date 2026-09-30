@@ -17,5 +17,6 @@ public class Grid
 
     required public string Difficulty { get; set; }
 
-    required public DateTime? PackDate { get; set; }
+    [BsonElement("pack")]
+    required public GridPack? Pack { get; set; }
 }

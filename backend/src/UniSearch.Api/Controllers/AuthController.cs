@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using UniSearch.Api.Errors;
 using UniSearch.Api.Models.Dtos;
-using UniSearch.Api.Services;
+using UniSearch.Api.Models.Dtos.Authentication;
+using UniSearch.Api.Services.Authentication;
+using UniSearch.Api.Services.Authentication.Results;
 
 namespace UniSearch.Api.Controllers;
 

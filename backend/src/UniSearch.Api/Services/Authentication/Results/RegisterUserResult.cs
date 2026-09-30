@@ -1,4 +1,4 @@
-namespace UniSearch.Api.Services;
+namespace UniSearch.Api.Services.Authentication.Results;
 
 public enum RegisterUserResult
 {

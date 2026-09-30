@@ -4,7 +4,7 @@ using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using UniSearch.Api.Models.Entities;
 
-namespace UniSearch.Api.Services;
+namespace UniSearch.Api.Services.Authentication;
 
 public sealed class JwtService
 {

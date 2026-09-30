@@ -1,10 +1,12 @@
-using UniSearch.Api.Models.Dtos;
+using UniSearch.Api.Models.Dtos.Grids;
 using UniSearch.Api.Repositories;
 
-namespace UniSearch.Api.Services;
+namespace UniSearch.Api.Services.Grids;
 
 public sealed class PackService
 {
+    private const string TestPackName = "test";
+
     private readonly GridRepository _gridRepository;
 
     public PackService(GridRepository gridRepository)
@@ -14,7 +16,7 @@ public sealed class PackService
 
     public async Task<PlayerPackResponse?> GetTestPackAsync()
     {
-        var testGrids = await _gridRepository.FindByPackDateAsync(null);
+        var testGrids = await _gridRepository.FindByPackNameAsync(TestPackName);
         if (testGrids.Count != 2)
         {
             return null;
@@ -22,7 +24,11 @@ public sealed class PackService
 
         return new PlayerPackResponse
         {
-            PackDate = null,
+            Pack = new PackResponse
+            {
+                Name = TestPackName,
+                Date = null,
+            },
             Grids = testGrids.Select(grid => new PlayerGridResponse
             {
                 Id = grid.Id,

@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UniSearch.Api.Models.Entities;
 using UniSearch.Api.Models.Dtos;
-using UniSearch.Api.Services;
+using UniSearch.Api.Services.Grids;
 
 namespace UniSearch.Api.Controllers;
 
