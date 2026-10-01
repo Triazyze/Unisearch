@@ -13,7 +13,7 @@ public sealed class GridService
         _gridRepository = gridRepository;
     }
 
-    public async Task<GridResponse?> GetGridByIdAsync(string gridId)
+    public async Task<AdminGridResponse?> GetGridByIdAsync(string gridId)
     {
         var grid = await _gridRepository.FindByIdAsync(gridId);
 
@@ -22,22 +22,41 @@ public sealed class GridService
             : ToGridResponse(grid);
     }
 
-    public async Task<List<GridResponse>> GetAllGridsAsync()
+    public async Task<List<AdminGridSummaryResponse>> GetAllGridsAsync()
     {
         var grids = await _gridRepository.FindAllAsync();
 
-        return grids.Select(ToGridResponse).ToList();
-    }
-
-    private static GridResponse ToGridResponse(Grid grid)
-    {
-        return new GridResponse
+        return grids.Select(grid => new AdminGridSummaryResponse
         {
             Id = grid.Id,
             Size = grid.Size,
-            Letters = grid.Letters,
             Difficulty = grid.Difficulty,
-            Words = grid.Words,
+            Pack = ToPackResponse(grid.Pack),
+            WordCount = grid.Words.Count,
+        }).ToList();
+    }
+
+    private static AdminGridResponse ToGridResponse(Grid grid)
+    {
+        return new AdminGridResponse
+        {
+            Id = grid.Id,
+            Size = grid.Size,
+            Letters = [.. grid.Letters],
+            Difficulty = grid.Difficulty,
+            Words = [.. grid.Words],
+            Pack = ToPackResponse(grid.Pack),
         };
+    }
+
+    private static PackResponse? ToPackResponse(Grid.PackDetails? pack)
+    {
+        return pack is null
+            ? null
+            : new PackResponse
+            {
+                Name = pack.Name,
+                Date = pack.Date,
+            };
     }
 }

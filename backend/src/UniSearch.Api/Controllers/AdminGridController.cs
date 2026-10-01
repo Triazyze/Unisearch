@@ -65,7 +65,7 @@ public sealed class AdminGridController : ControllerBase
     [Route("api/grids")]
     [HttpGet]
     [Authorize(Roles = nameof(Role.Admin))]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<AdminGridSummaryResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetAllGridsAsync()
@@ -77,22 +77,23 @@ public sealed class AdminGridController : ControllerBase
     [Route("api/grids/{gridId}")]
     [HttpGet]
     [Authorize(Roles = nameof(Role.Admin))]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AdminGridResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetGridByIdAsync(string gridId)
     {
+        if (!ObjectId.TryParse(gridId, out _))
+        {
+            return BadRequest(GeneralApiErrors.BadRequest);
+        }
+
         var grid = await _gridService.GetGridByIdAsync(gridId);
 
         if (grid is null)
         {
             return NotFound(DomainApiErrors.GridNotFound);
-        }
-
-        if (!ObjectId.TryParse(gridId, out _))
-        {
-            return BadRequest(GeneralApiErrors.BadRequest);
         }
 
         return Ok(grid);

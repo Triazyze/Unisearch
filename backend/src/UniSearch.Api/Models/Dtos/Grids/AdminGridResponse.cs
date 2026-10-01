@@ -1,6 +1,6 @@
 namespace UniSearch.Api.Models.Dtos.Grids;
 
-public sealed class GridResponse
+public sealed class AdminGridResponse
 {
     public string Id { get; init; } = string.Empty;
 
@@ -11,4 +11,6 @@ public sealed class GridResponse
     public List<string> Words { get; init; } = [];
 
     public string Difficulty { get; init; } = string.Empty;
+
+    public PackResponse? Pack { get; init; }
 }
