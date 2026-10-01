@@ -2,33 +2,15 @@ using UniSearch.Api.Models.Dtos;
 
 namespace UniSearch.Api.Errors;
 
-public static class ApiErrors
+public static class DomainApiErrors
 {
-    public static readonly ErrorResponse BadRequest = new (
-        StatusCodes.Status400BadRequest,
-        "BAD_REQUEST",
-        "La requête est invalide.");
-
-    public static readonly ErrorResponse Unauthorized = new (
-        StatusCodes.Status401Unauthorized,
-        "UNAUTHORIZED",
-        "L'authentification a échoué.");
-
-    public static readonly ErrorResponse Forbidden = new (
-        StatusCodes.Status403Forbidden,
-        "FORBIDDEN",
-        "Vous n'avez pas les droits nécessaires pour accéder à cette ressource.");
-
-    public static readonly ErrorResponse TooManyRequests = new (
-        StatusCodes.Status429TooManyRequests,
-        "TOO_MANY_REQUESTS",
-        "Trop de requêtes ont été envoyées. Réessayez plus tard.");
-
+    // Erreur auth
     public static readonly ErrorResponse UserAlreadyExists = new (
         StatusCodes.Status409Conflict,
         "USER_ALREADY_EXISTS",
         "Un utilisateur utilise déjà ce nom ou cette adresse email.");
 
+    // Erreurs de vérification de grille
     public static readonly ErrorResponse GridNotFound = new (
         StatusCodes.Status404NotFound,
         "GRID_NOT_FOUND",
@@ -58,4 +40,35 @@ public static class ApiErrors
         StatusCodes.Status422UnprocessableEntity,
         "TRACES_INVALID",
         "Les tracés soumis sont invalides.");
+
+    // Erreurs de création de grille
+    public static readonly ErrorResponse MissingDifficulty = new (
+        StatusCodes.Status422UnprocessableEntity,
+        "MISSING_DIFFICULTY",
+        "La difficulté est manquante.");
+
+    public static readonly ErrorResponse IncorrectGridSize = new (
+        StatusCodes.Status422UnprocessableEntity,
+        "INCORRECT_GRID_SIZE",
+        "La taille de la grille doit être comprise entre 4 et 10.");
+
+    public static readonly ErrorResponse InvalidWords = new (
+        StatusCodes.Status422UnprocessableEntity,
+        "INVALID_WORDS",
+        "Les mots doivent faire au moins 3 caractères et ne doivent pas être des palindromes");
+
+    public static readonly ErrorResponse DuplicateWords = new (
+        StatusCodes.Status422UnprocessableEntity,
+        "DUPLICATE_WORDS",
+        "Chaque mot doit être unique dans la liste des mots fournie.");
+
+    public static readonly ErrorResponse NotEnoughWords = new (
+        StatusCodes.Status422UnprocessableEntity,
+        "NOT_ENOUGH_WORDS",
+        "Entrez au moins un mot pour créer une grille.");
+
+    public static readonly ErrorResponse PlacementFailed = new (
+        StatusCodes.Status422UnprocessableEntity,
+        "PLACEMENT_FAILED",
+        "Le placement des mots a échoué.");
 }

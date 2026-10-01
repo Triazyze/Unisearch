@@ -26,7 +26,7 @@ builder.Services.AddControllers();
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.InvalidModelStateResponseFactory = _ =>
-        new BadRequestObjectResult(ApiErrors.BadRequest);
+        new BadRequestObjectResult(GeneralApiErrors.BadRequest);
 });
 
 // Limite les appels aux endpoints API pour réduire les abus et les tentatives répétées.
@@ -46,9 +46,9 @@ builder.Services.AddRateLimiter(options =>
 
     options.OnRejected = async (context, cancellationToken) =>
     {
-        context.HttpContext.Response.StatusCode = ApiErrors.TooManyRequests.StatusCode;
+        context.HttpContext.Response.StatusCode = GeneralApiErrors.TooManyRequests.StatusCode;
         await context.HttpContext.Response.WriteAsJsonAsync(
-            ApiErrors.TooManyRequests,
+            GeneralApiErrors.TooManyRequests,
             cancellationToken: cancellationToken);
     };
 });
@@ -112,6 +112,23 @@ builder.Services
                 NameClaimType = JwtRegisteredClaimNames.Sub,
                 RoleClaimType = "role",
             };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnChallenge = context =>
+            {
+                context.HandleResponse();
+                context.Response.StatusCode = GeneralApiErrors.Unauthorized.StatusCode;
+
+                return context.Response.WriteAsJsonAsync(GeneralApiErrors.Unauthorized);
+            },
+            OnForbidden = context =>
+            {
+                context.Response.StatusCode = GeneralApiErrors.Forbidden.StatusCode;
+
+                return context.Response.WriteAsJsonAsync(GeneralApiErrors.Forbidden);
+            },
+        };
     });
 
 builder.Services.AddSingleton(
@@ -133,6 +150,7 @@ builder.Services.AddSingleton<PlayerResultRepository>();
 
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<GridService>();
 builder.Services.AddScoped<GridCreationService>();
 builder.Services.AddScoped<PackService>();
 builder.Services.AddScoped<GridVerificationService>();

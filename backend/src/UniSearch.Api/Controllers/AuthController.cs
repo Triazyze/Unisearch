@@ -35,7 +35,7 @@ public sealed class AuthController : ControllerBase
             {
                 message = $"Joueur {request.Username} a été créé avec succès.",
             }),
-            RegisterUserResult.Duplicate => Conflict(ApiErrors.UserAlreadyExists),
+            RegisterUserResult.Duplicate => Conflict(DomainApiErrors.UserAlreadyExists),
             _ => throw new InvalidOperationException("Resultat inattendu lors de l'enregistrement de l'utilisateur."),
         };
     }
@@ -52,7 +52,7 @@ public sealed class AuthController : ControllerBase
 
         if (token is null)
         {
-            return Unauthorized(ApiErrors.Unauthorized);
+            return Unauthorized(GeneralApiErrors.Unauthorized);
         }
 
         return Ok(new LoginResponse

@@ -1,8 +1,6 @@
-using MongoDB.Driver;
 using UniSearch.Api.Models.Dtos.Grids;
 using UniSearch.Api.Models.Entities;
 using UniSearch.Api.Repositories;
-using UniSearch.Api.Services.Grids;
 using UniSearch.Api.Services.Grids.Results;
 using BSONObjectId = MongoDB.Bson.ObjectId;
 
@@ -10,6 +8,18 @@ namespace UniSearch.Api.Services.Grids;
 
 public sealed class GridCreationService
 {
+    private static readonly (int Row, int Column)[] Directions =
+    [
+        (-1, 0),  // Haut
+        (-1, 1),  // Haut-droite
+        (0, 1),   // Droite
+        (1, 1),   // Bas-droite
+        (1, 0),   // Bas
+        (1, -1),  // Bas-gauche
+        (0, -1),  // Gauche
+        (-1, -1), // Haut-gauche
+    ];
+
     private readonly GridRepository _gridRepository;
 
     public GridCreationService(GridRepository gridRepository)
@@ -40,7 +50,14 @@ public sealed class GridCreationService
         // Valide les mots
         foreach (var word in request.Words)
         {
-            if (word.Length == 0 || word.Any(char.IsSurrogate))
+            if (string.IsNullOrEmpty(word) || word.Length <= 2 || word.Any(char.IsSurrogate))
+            {
+                return GridCreationResult.InvalidWords;
+            }
+
+            var reversedWord = new string(word.Reverse().ToArray());
+
+            if (StringComparer.Ordinal.Equals(word, reversedWord))
             {
                 return GridCreationResult.InvalidWords;
             }
@@ -73,82 +90,103 @@ public sealed class GridCreationService
 
         // Initialise les données nécessaires au placement.
         var wordsToPlace = request.Words.OrderByDescending(word => word.Length).ToList();
-        var gridLetters = new char[request.Size, request.Size];
+        var maxAttempts = request.Size * request.Size;
 
-        // Place tous les mots dans la grille.
-        foreach (var word in wordsToPlace)
+        for (var attempt = 0; attempt < maxAttempts; attempt++)
         {
-            if (!PlaceWordInGrid(gridLetters, word))
-            {
-                return GridCreationResult.PlacementFailed;
-            }
-        }
+            // Chaque tentative repart d'une grille vide.
+            var lettersInGrid = new char[request.Size, request.Size];
+            var placementSucceeded = true;
 
-        // Complète les cases restantes avec des lettres.
-        var random = new Random();
-        for (int i = 0; i < request.Size; i++)
-        {
-            for (int j = 0; j < request.Size; j++)
+            // Place tous les mots dans la grille.
+            foreach (var word in wordsToPlace)
             {
-                if (gridLetters[i, j] == '\0') // Si la case est vide
+                if (!PlaceWordInGrid(lettersInGrid, word))
                 {
-                    gridLetters[i, j] = (char)('A' + random.Next(0, 26)); // Remplit avec une lettre aléatoire
+                    placementSucceeded = false;
+                    break;
                 }
             }
-        }
 
-        // Vérifie que chaque mot cible apparaît une seule fois.
-        foreach (var word in request.Words)
-        {
-            if (CountWordOccurrences(gridLetters, word) != 1)
+            // Un mot n'a pas pu être placé :
+            // abandonne cette grille et passe à la tentative suivante.
+            if (!placementSucceeded)
             {
-                return GridCreationResult.PlacementFailed;
+                continue;
             }
+
+            // Complète les cases restantes avec des lettres aléatoires.
+            for (var row = 0; row < request.Size; row++)
+            {
+                for (var column = 0; column < request.Size; column++)
+                {
+                    if (lettersInGrid[row, column] == '\0')
+                    {
+                        lettersInGrid[row, column] =
+                            (char)('A' + Random.Shared.Next(0, 26));
+                    }
+                }
+            }
+
+            // Vérifie que chaque mot cible apparaît exactement une fois.
+            var occurrencesAreValid = true;
+
+            foreach (var word in request.Words)
+            {
+                if (CountWordOccurrences(lettersInGrid, word) != 1)
+                {
+                    occurrencesAreValid = false;
+                    break;
+                }
+            }
+
+            // Le remplissage a créé une occurrence supplémentaire :
+            // abandonne cette grille et recommence.
+            if (!occurrencesAreValid)
+            {
+                continue;
+            }
+
+            // La génération est valide : construit et persiste la grille.
+            var finalGrid = new Grid
+            {
+                Id = BSONObjectId.GenerateNewId().ToString(),
+                Size = request.Size,
+                Letters = ConvertCellsToRows(lettersInGrid),
+                Words = [.. request.Words],
+                Difficulty = request.Difficulty,
+                Pack = null,
+            };
+
+            await _gridRepository.CreateAsync(finalGrid);
+
+            return GridCreationResult.GridCreated;
         }
 
-        // Construit l'entité Grid avec Pack = null.
-        var grid = new Grid
-        {
-            Id = BSONObjectId.GenerateNewId().ToString(),
-            Size = request.Size,
-            Letters = ConvertCellsToRows(gridLetters),
-            Words = [.. request.Words],
-            Difficulty = request.Difficulty,
-            Pack = null,
-        };
-        // Persiste la grille uniquement après une génération réussie.
-        await _gridRepository.CreateAsync(grid);
-        // Retourne la grille créée.
-        return GridCreationResult.GridCreated;
+        // Toutes les tentatives ont échoué.
+        return GridCreationResult.PlacementFailed;
     }
 
-    private static bool PlaceWordInGrid(char[,] grid, string word)
+    // Vérifie si une position donnée est à l'intérieur des limites de la grille.
+    private static bool IsWithinBounds(char[,] grid, int row, int column)
     {
-        // Implémentez la logique pour placer le mot dans la grille.
-        // Vous pouvez choisir une position aléatoire et une direction (horizontal, vertical, diagonal).
-        // Assurez-vous que le mot ne chevauche pas d'autres mots déjà placés.
-        // Retournez true si le placement est réussi, sinon false.
-        return true; // Placeholder, remplacez par la logique réelle.
+        if (row < 0 || row >= grid.GetLength(0) || column < 0 || column >= grid.GetLength(1))
+        {
+            return false;
+        }
+
+        return true;
     }
 
-    private static bool DoesWordMatchAt(
-    char[,] grid,
-    string word,
-    int startRow,
-    int startColumn,
-    int rowDirection,
-    int columnDirection)
+    // Vérifie si un mot correspond à une position spécifique dans la grille.
+    private static bool DoesWordMatchAt(char[,] grid, string word, int startRow, int startColumn, int rowDirection, int columnDirection)
     {
         for (var index = 0; index < word.Length; index++)
         {
             var row = startRow + (index * rowDirection);
             var column = startColumn + (index * columnDirection);
 
-            if (row < 0
-                || row >= grid.GetLength(0)
-                || column < 0
-                || column >= grid.GetLength(1)
-                || grid[row, column] != word[index])
+            if (!IsWithinBounds(grid, row, column) || grid[row, column] != word[index])
             {
                 return false;
             }
@@ -157,47 +195,73 @@ public sealed class GridCreationService
         return true;
     }
 
+    // Vérifie si un mot peut être placé à une position spécifique dans la grille.
+    private static bool CanPlaceWordAt(char[,] grid, string word, int startRow, int startColumn, int rowDirection, int columnDirection)
+    {
+        for (var index = 0; index < word.Length; index++)
+        {
+            var row = startRow + (index * rowDirection);
+            var column = startColumn + (index * columnDirection);
+
+            if (!IsWithinBounds(grid, row, column) || (grid[row, column] != '\0' && grid[row, column] != word[index]))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // Logique de placement des mots dans la grille.
+    private static bool PlaceWordInGrid(char[,] grid, string word)
+    {
+        var size = grid.GetLength(0);
+        var cellCount = size * size;
+        var startCell = Random.Shared.Next(cellCount);
+
+        for (var i = 0; i < cellCount; i++)
+        {
+            var currentCell = (startCell + i) % cellCount;
+
+            var row = currentCell / size;
+            var column = currentCell % size;
+
+            var startDirection = Random.Shared.Next(Directions.Length);
+
+            for (var directionIndex = 0; directionIndex < Directions.Length; directionIndex++)
+            {
+                var currentDirection = (startDirection + directionIndex) % Directions.Length;
+                var direction = Directions[currentDirection];
+
+                if (CanPlaceWordAt(grid, word, row, column, direction.Row, direction.Column))
+                {
+                    for (var index = 0; index < word.Length; index++)
+                    {
+                        var newRow = row + (index * direction.Row);
+                        var newColumn = column + (index * direction.Column);
+                        grid[newRow, newColumn] = word[index];
+                    }
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // Compte le nombre d'occurrences d'un mot dans la grille.
     private static int CountWordOccurrences(char[,] grid, string word)
     {
         var count = 0;
-        if (word.Length == 1)
-        {
-            foreach (var letter in grid)
-            {
-                if (letter == word[0])
-                {
-                    count++;
-                }
-            }
-
-            return count;
-        }
 
         for (var row = 0; row < grid.GetLength(0); row++)
         {
             for (var column = 0; column < grid.GetLength(1); column++)
             {
-                for (int i = 0; i < 8; i++)
+                foreach (var direction in Directions)
                 {
-                    var direction = i switch
-                    {
-                        0 => (Row: -1, Column: 0),
-                        1 => (Row: -1, Column: 1),
-                        2 => (Row: 0, Column: 1),
-                        3 => (Row: 1, Column: 1),
-                        4 => (Row: 1, Column: 0),
-                        5 => (Row: 1, Column: -1),
-                        6 => (Row: 0, Column: -1),
-                        _ => (Row: -1, Column: -1),
-                    };
-
-                    if (DoesWordMatchAt(
-                        grid,
-                        word,
-                        row,
-                        column,
-                        direction.Row,
-                        direction.Column))
+                    if (DoesWordMatchAt(grid, word, row, column, direction.Row, direction.Column))
                     {
                         count++;
                     }
@@ -208,6 +272,7 @@ public sealed class GridCreationService
         return count;
     }
 
+    // Convertit la grille de caractères en une liste de chaînes représentant les lignes.
     private static List<string> ConvertCellsToRows(char[,] grid)
     {
         var rows = new List<string>();

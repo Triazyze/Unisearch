@@ -30,14 +30,14 @@ public sealed class PackController : ControllerBase
         var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
         if (string.IsNullOrWhiteSpace(userId))
         {
-            return Unauthorized(ApiErrors.Unauthorized);
+            return Unauthorized(GeneralApiErrors.Unauthorized);
         }
 
         var pack = await _packService.GetTestPackAsync();
 
         if (pack is null)
         {
-            return NotFound(ApiErrors.TestPackNotFound);
+            return NotFound(DomainApiErrors.TestPackNotFound);
         }
 
         return Ok(pack);

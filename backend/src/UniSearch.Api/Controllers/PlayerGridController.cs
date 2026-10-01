@@ -35,12 +35,12 @@ public sealed class GridVerificationController : ControllerBase
         var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
         if (string.IsNullOrWhiteSpace(userId))
         {
-            return Unauthorized(ApiErrors.Unauthorized);
+            return Unauthorized(GeneralApiErrors.Unauthorized);
         }
 
         if (!ObjectId.TryParse(gridId, out _))
         {
-            return BadRequest(ApiErrors.BadRequest);
+            return BadRequest(GeneralApiErrors.BadRequest);
         }
 
         var result = await _gridVerificationService.VerifyGridAsync(gridId, userId, request);
@@ -51,11 +51,11 @@ public sealed class GridVerificationController : ControllerBase
             {
                 message = "Grille vérifiée avec succès.",
             }),
-            GridVerificationResult.GridNotFound => NotFound(ApiErrors.GridNotFound),
-            GridVerificationResult.LettersInvalid => UnprocessableEntity(ApiErrors.LettersInvalid),
-            GridVerificationResult.WordsInvalid => UnprocessableEntity(ApiErrors.WordsInvalid),
-            GridVerificationResult.TraceMismatch => UnprocessableEntity(ApiErrors.TraceMismatch),
-            GridVerificationResult.TracesInvalid => UnprocessableEntity(ApiErrors.TracesInvalid),
+            GridVerificationResult.GridNotFound => NotFound(DomainApiErrors.GridNotFound),
+            GridVerificationResult.LettersInvalid => UnprocessableEntity(DomainApiErrors.LettersInvalid),
+            GridVerificationResult.WordsInvalid => UnprocessableEntity(DomainApiErrors.WordsInvalid),
+            GridVerificationResult.TraceMismatch => UnprocessableEntity(DomainApiErrors.TraceMismatch),
+            GridVerificationResult.TracesInvalid => UnprocessableEntity(DomainApiErrors.TracesInvalid),
             _ => throw new InvalidOperationException("Résultat inattendu lors de la vérification de la grille."),
         };
     }
