@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using MongoDB.Driver;
+using UniSearch.Api.Models.Dtos.Authentication;
 using UniSearch.Api.Models.Entities;
 using UniSearch.Api.Repositories;
+using UniSearch.Api.Services.Authentication.Results;
 
-namespace UniSearch.Api.Services;
+namespace UniSearch.Api.Services.Authentication;
 
 public sealed class AuthService
 {

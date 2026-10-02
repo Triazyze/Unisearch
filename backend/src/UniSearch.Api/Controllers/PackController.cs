@@ -1,7 +1,10 @@
+using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using UniSearch.Api.Errors;
 using UniSearch.Api.Models.Entities;
-using UniSearch.Api.Services;
+using UniSearch.Api.Models.Dtos;
+using UniSearch.Api.Services.Grids;
 
 namespace UniSearch.Api.Controllers;
 
@@ -19,19 +22,22 @@ public sealed class PackController : ControllerBase
     [HttpGet]
     [Authorize(Roles = nameof(Role.Player))]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetTestPackAsync()
     {
+        var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return Unauthorized(GeneralApiErrors.Unauthorized);
+        }
+
         var pack = await _packService.GetTestPackAsync();
 
         if (pack is null)
         {
-            return NotFound(new
-            {
-                message = "Le pack de test est introuvable.",
-            });
+            return NotFound(DomainApiErrors.TestPackNotFound);
         }
 
         return Ok(pack);

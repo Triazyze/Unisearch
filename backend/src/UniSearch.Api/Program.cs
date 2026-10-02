@@ -1,21 +1,62 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using MongoDB.Driver;
+using UniSearch.Api.Errors;
 using UniSearch.Api.Models.Entities;
 using UniSearch.Api.Repositories;
 using UniSearch.Api.Services;
+using UniSearch.Api.Services.Authentication;
+using UniSearch.Api.Services.Grids;
+
+const string ApiRateLimitPolicy = "api";
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Contrôleurs et validation HTTP
 
 builder.Services.AddControllers();
 
-// MongoDB
+// Uniformise les erreurs de validation automatique des DTOs.
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = _ =>
+        new BadRequestObjectResult(GeneralApiErrors.BadRequest);
+});
+
+// Limite les appels aux endpoints API pour réduire les abus et les tentatives répétées.
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddPolicy(ApiRateLimitPolicy, httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0,
+                AutoReplenishment = true,
+            }));
+
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.StatusCode = GeneralApiErrors.TooManyRequests.StatusCode;
+        await context.HttpContext.Response.WriteAsJsonAsync(
+            GeneralApiErrors.TooManyRequests,
+            cancellationToken: cancellationToken);
+    };
+});
+
+// Configuration MongoDB
+
+// Connexion et sélection de la base MongoDB.
+
 var mongoUri = builder.Configuration["MONGODB_URI"]
     ?? throw new InvalidOperationException(
         "MONGODB_URI n'est pas défini dans les variables d'environnement.");
@@ -25,7 +66,8 @@ var databaseName = mongoUrl.DatabaseName
     ?? throw new InvalidOperationException(
         "MONGODB_URI doit contenir le nom de la base de données");
 
-// JWT
+// Authentification et autorisation JWT
+
 var jwtSecret = builder.Configuration["JWT_SECRET"]
     ?? throw new InvalidOperationException(
         "JWT_SECRET n'est pas défini dans les variables d'environnement.");
@@ -70,6 +112,23 @@ builder.Services
                 NameClaimType = JwtRegisteredClaimNames.Sub,
                 RoleClaimType = "role",
             };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnChallenge = context =>
+            {
+                context.HandleResponse();
+                context.Response.StatusCode = GeneralApiErrors.Unauthorized.StatusCode;
+
+                return context.Response.WriteAsJsonAsync(GeneralApiErrors.Unauthorized);
+            },
+            OnForbidden = context =>
+            {
+                context.Response.StatusCode = GeneralApiErrors.Forbidden.StatusCode;
+
+                return context.Response.WriteAsJsonAsync(GeneralApiErrors.Forbidden);
+            },
+        };
     });
 
 builder.Services.AddSingleton(
@@ -77,24 +136,29 @@ builder.Services.AddSingleton(
 
 builder.Services.AddAuthorization();
 
-// Configure MongoDB et les services associés
+// Persistance MongoDB, repositories et services
+
+// Connexions aux collections MongoDB et services applicatifs.
 builder.Services.AddSingleton<IMongoClient>(new MongoClient(mongoUrl));
 builder.Services.AddSingleton<IMongoDatabase>(serviceProvider =>
     serviceProvider
         .GetRequiredService<IMongoClient>()
         .GetDatabase(databaseName));
 builder.Services.AddSingleton<UserRepository>();
-builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<DatabaseSeeder>();
-builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
-
-builder.Services.AddSingleton<PackRepository>();
-builder.Services.AddScoped<PackService>();
 builder.Services.AddSingleton<GridRepository>();
 builder.Services.AddSingleton<PlayerResultRepository>();
-builder.Services.AddScoped<GridVerificationService>();
 
-// Configure Swagger/OpenAPI
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<GridService>();
+builder.Services.AddScoped<GridCreationService>();
+builder.Services.AddScoped<PackService>();
+builder.Services.AddScoped<GridVerificationService>();
+builder.Services.AddScoped<DatabaseSeeder>();
+
+// Documentation Swagger / OpenAPI
+
+// Configure Swagger et OpenAPI.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -114,6 +178,8 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
+// Initialisation de la base de données
+
 await app.Services
     .GetRequiredService<UserRepository>()
     .EnsureIndexesAsync();
@@ -129,7 +195,7 @@ using (var scope = app.Services.CreateScope())
     await databaseSeeder.SeedAsync();
 }
 
-// Configure the HTTP request pipeline.
+// Pipeline HTTP
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -137,10 +203,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStatusCodePages();
 
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapControllers().RequireRateLimiting(ApiRateLimitPolicy);
 
 app.Run();

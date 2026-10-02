@@ -1,4 +1,4 @@
-namespace UniSearch.Api.Models.Dtos;
+namespace UniSearch.Api.Models.Dtos.Grids;
 
 public sealed class GridVerificationRequest
 {
