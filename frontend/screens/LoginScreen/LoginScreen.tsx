@@ -1,8 +1,14 @@
 import { StatusBar } from 'expo-status-bar';
-import { Text, TextInput, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { PrimaryButton } from '../../ui/PrimaryButton';
+import { TextField } from '../../ui/TextField';
+import { TextLink } from '../../ui/TextLink';
 import { styles } from './LoginScreenStyle';
+import { useAppNavigation } from '../../navigation/useAppNavigation';
 
 export default function LoginScreen() {
+  const navigation = useAppNavigation();
+
   return (
     <View style={styles.screen}>
       <StatusBar style="dark" />
@@ -13,31 +19,25 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.form}>
-          <Text style={styles.label}>Pseudo ou adresse email</Text>
-          <TextInput
-            accessibilityLabel="Pseudo ou adresse email"
+          <TextField
             autoCapitalize="none"
             autoComplete="username"
             defaultValue="JoueurCool"
-            placeholderTextColor={styles.placeholder.color}
-            style={styles.input}
+            label="Pseudo ou adresse email"
           />
 
-          <Text style={[styles.label, styles.passwordLabel]}>Mot de passe</Text>
-          <TextInput
-            accessibilityLabel="Mot de passe"
+          <TextField
             autoCapitalize="none"
             autoComplete="current-password"
+            containerStyle={styles.passwordField}
             defaultValue="motdepasse12"
+            label="Mot de passe"
             secureTextEntry
-            style={styles.input}
           />
 
-          <View style={styles.primaryButton}>
-            <Text style={styles.primaryButtonText}>Se connecter</Text>
-          </View>
+          <PrimaryButton label="Se connecter" style={styles.primaryButton} />
 
-          <Text style={styles.accountLink}>Pas de compte ? Créer un compte</Text>
+          <TextLink onPress={() => navigation.navigate('Register')} label="Pas de compte ? Créer un compte" style={styles.accountLink} />
         </View>
       </View>
     </View>
