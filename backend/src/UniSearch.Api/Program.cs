@@ -16,6 +16,8 @@ using UniSearch.Api.Services.Grids;
 
 const string ApiRateLimitPolicy = "api";
 
+const string DevelopmentCorsPolicy = "development";
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Contrôleurs et validation HTTP
@@ -28,6 +30,30 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     options.InvalidModelStateResponseFactory = _ =>
         new BadRequestObjectResult(GeneralApiErrors.BadRequest);
 });
+
+if (builder.Environment.IsDevelopment())
+{
+    var allowedOrigins = builder.Configuration["CORS_ALLOWED_ORIGINS"]?
+        .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        ?? [];
+
+    if (allowedOrigins.Length == 0)
+    {
+        throw new InvalidOperationException(
+            "CORS_ALLOWED_ORIGINS doit définir au moins une origine en développement.");
+    }
+
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy(DevelopmentCorsPolicy, policy =>
+        {
+            policy
+                .WithOrigins(allowedOrigins)
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+    });
+}
 
 // Limite les appels aux endpoints API pour réduire les abus et les tentatives répétées.
 builder.Services.AddRateLimiter(options =>
@@ -200,6 +226,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseCors(DevelopmentCorsPolicy);
 }
 
 app.UseHttpsRedirection();

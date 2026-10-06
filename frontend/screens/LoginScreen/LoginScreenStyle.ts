@@ -27,8 +27,14 @@ export const styles = StyleSheet.create({
   passwordField: {
     marginTop: 17,
   },
+  errorMessage: {
+    color: '#B3261E',
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: 16,
+  },
   primaryButton: {
-    marginTop: 32,
+    marginTop: 16,
   },
   accountLink: {
     marginTop: 24,

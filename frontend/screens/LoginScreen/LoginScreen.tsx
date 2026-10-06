@@ -1,13 +1,54 @@
 import { StatusBar } from 'expo-status-bar';
+import { Controller, useForm } from 'react-hook-form';
+import { useState } from 'react';
 import { Text, View } from 'react-native';
 import { PrimaryButton } from '../../ui/PrimaryButton';
 import { TextField } from '../../ui/TextField';
 import { TextLink } from '../../ui/TextLink';
 import { styles } from './LoginScreenStyle';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
+import { loginAsync } from '../../services/auth/authService';
+import { useAuthStore } from '../../stores/useAuthStore';
+
+type LoginFormValues = {
+  identifier: string;
+  password: string;
+};
 
 export default function LoginScreen() {
   const navigation = useAppNavigation();
+  const setSessionAsync = useAuthStore((state) => state.setSessionAsync);
+  const [authenticationErrorMessage, setAuthenticationErrorMessage] = useState<string | null>(null);
+  const {
+    control,
+    formState: { errors, isSubmitting },
+    handleSubmit,
+  } = useForm<LoginFormValues>({
+    defaultValues: {
+      identifier: '',
+      password: '',
+    },
+  });
+
+  async function handleLogin({ identifier, password }: LoginFormValues) {
+    setAuthenticationErrorMessage(null);
+
+    try {
+      const token = await loginAsync(identifier, password);
+      const sessionWasCreated = await setSessionAsync(token);
+
+      if (!sessionWasCreated) {
+        setAuthenticationErrorMessage('La réponse de connexion est invalide.');
+      }
+    } catch (error) {
+      setAuthenticationErrorMessage(
+        error instanceof Error ? error.message : 'La connexion est impossible pour le moment.',
+      );
+    }
+  }
+
+  const formErrorMessage =
+    errors.identifier?.message ?? errors.password?.message ?? authenticationErrorMessage;
 
   return (
     <View style={styles.screen}>
@@ -19,25 +60,55 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.form}>
-          <TextField
-            autoCapitalize="none"
-            autoComplete="username"
-            defaultValue="JoueurCool"
-            label="Pseudo ou adresse email"
+          <Controller
+            control={control}
+            name="identifier"
+            render={({ field: { onChange, value } }) => (
+              <TextField
+                autoCapitalize="none"
+                autoComplete="username"
+                autoCorrect={false}
+                editable={!isSubmitting}
+                label="Pseudo ou adresse email"
+                onChangeText={onChange}
+                value={value}
+              />
+            )}
+            rules={{ required: "Le pseudo ou l'adresse email est requis." }}
           />
 
-          <TextField
-            autoCapitalize="none"
-            autoComplete="current-password"
-            containerStyle={styles.passwordField}
-            defaultValue="motdepasse12"
-            label="Mot de passe"
-            secureTextEntry
+          <Controller
+            control={control}
+            name="password"
+            render={({ field: { onChange, value } }) => (
+              <TextField
+                autoCapitalize="none"
+                autoComplete="current-password"
+                containerStyle={styles.passwordField}
+                editable={!isSubmitting}
+                label="Mot de passe"
+                onChangeText={onChange}
+                secureTextEntry
+                value={value}
+              />
+            )}
+            rules={{ required: 'Le mot de passe est requis.' }}
           />
 
-          <PrimaryButton label="Se connecter" style={styles.primaryButton} />
+          {formErrorMessage !== null && <Text style={styles.errorMessage}>{formErrorMessage}</Text>}
 
-          <TextLink onPress={() => navigation.navigate('Register')} label="Pas de compte ? Créer un compte" style={styles.accountLink} />
+          <PrimaryButton
+            disabled={isSubmitting}
+            label={isSubmitting ? 'Connexion...' : 'Se connecter'}
+            onPress={handleSubmit(handleLogin)}
+            style={styles.primaryButton}
+          />
+
+          <TextLink
+            onPress={() => navigation.navigate('Register')}
+            label="Pas de compte ? Créer un compte"
+            style={styles.accountLink}
+          />
         </View>
       </View>
     </View>
