@@ -44,17 +44,7 @@ export const styles = StyleSheet.create({
     marginTop: 16,
   },
   logoutButton: {
-    alignItems: 'center',
-    borderColor: theme.colors.primary,
-    borderRadius: theme.radius.button,
-    borderWidth: 0.5,
-    height: 56,
-    justifyContent: 'center',
     marginTop: 'auto',
     marginBottom: 58,
-  },
-  logoutButtonText: {
-    color: theme.colors.primary,
-    fontSize: 16,
   },
 });

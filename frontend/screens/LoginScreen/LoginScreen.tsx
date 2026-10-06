@@ -2,7 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Controller, useForm } from 'react-hook-form';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
-import { PrimaryButton } from '../../components/ui/PrimaryButton';
+import { Button } from '../../components/ui/Button';
 import { TextField } from '../../components/ui/TextField';
 import { TextLink } from '../../components/ui/TextLink';
 import { styles } from './LoginScreenStyle';
@@ -97,11 +97,12 @@ export default function LoginScreen() {
 
           {formErrorMessage !== null && <Text style={styles.errorMessage}>{formErrorMessage}</Text>}
 
-          <PrimaryButton
+          <Button
             disabled={isSubmitting}
             label={isSubmitting ? 'Connexion...' : 'Se connecter'}
             onPress={handleSubmit(handleLogin)}
             style={styles.primaryButton}
+            variant="primary"
           />
 
           <TextLink

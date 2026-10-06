@@ -2,6 +2,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import AdminMenuScreen from '../screens/Admin/AdminMenuScreen/AdminMenuScreen';
+import GridListScreen from '../screens/Admin/GridListScreen/GridListScreen';
 import LoginScreen from '../screens/LoginScreen/LoginScreen';
 import MainScreen from '../screens/MainScreen/MainScreen';
 import PlayerMenuScreen from '../screens/PlayerMenuScreen/PlayerMenuScreen';
@@ -10,6 +12,8 @@ import { useAuthStore } from '../stores/useAuthStore';
 import { theme } from '../components/ui/theme';
 
 export type RootStackParamList = {
+  AdminMenu: undefined;
+  AdminGridList: undefined;
   Login: undefined;
   Main: undefined;
   PlayerMenu: undefined;
@@ -48,6 +52,12 @@ export default function RootNavigator() {
             <Stack.Screen name="Main" component={MainScreen} />
             {user.role === 'Player' && (
               <Stack.Screen name="PlayerMenu" component={PlayerMenuScreen} />
+            )}
+            {user.role === 'Admin' && (
+              <>
+                <Stack.Screen name="AdminMenu" component={AdminMenuScreen} />
+                <Stack.Screen name="AdminGridList" component={GridListScreen} />
+              </>
             )}
           </>
         )}

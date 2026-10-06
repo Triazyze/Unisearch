@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { registerAsync } from '../../services/auth/authService';
 import { AppModal } from '../../components/ui/AppModal';
-import { PrimaryButton } from '../../components/ui/PrimaryButton';
+import { Button } from '../../components/ui/Button';
 import { TextField } from '../../components/ui/TextField';
 import { TextLink } from '../../components/ui/TextLink';
 import { styles } from './RegisterScreenStyle';
@@ -135,11 +135,12 @@ export default function RegisterScreen() {
 
           {formErrorMessage !== null && <Text style={styles.errorMessage}>{formErrorMessage}</Text>}
 
-          <PrimaryButton
+          <Button
             disabled={isSubmitting}
             label={isSubmitting ? 'Création...' : 'Créer mon compte'}
             onPress={handleSubmit(handleRegister)}
             style={styles.primaryButton}
+            variant="primary"
           />
 
           <TextLink

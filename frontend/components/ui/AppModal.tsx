@@ -1,5 +1,5 @@
 import { Modal, StyleSheet, Text, View } from 'react-native';
-import { PrimaryButton } from './PrimaryButton';
+import { Button } from './Button';
 import { theme } from './theme';
 
 type AppModalProps = {
@@ -19,7 +19,7 @@ export function AppModal({ actionLabel, message, onAction, title, visible }: App
             {title}
           </Text>
           <Text style={styles.message}>{message}</Text>
-          <PrimaryButton label={actionLabel} onPress={onAction} style={styles.action} />
+          <Button label={actionLabel} onPress={onAction} style={styles.action} variant="primary" />
         </View>
       </View>
     </Modal>

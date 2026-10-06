@@ -1,8 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { Button } from '../../components/ui/Button';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAuthStore } from '../../stores/useAuthStore';
-import { PrimaryButton } from '../../components/ui/PrimaryButton';
 import { styles } from './MainScreenStyle';
 
 export default function MainScreen() {
@@ -32,19 +32,19 @@ export default function MainScreen() {
           <Text style={styles.cardDescription}>
             {isAdmin ? 'Consultez ou générez des grilles.' : 'Deux grilles disponibles.'}
           </Text>
-          <PrimaryButton
+          <Button
             label={isAdmin ? 'Administrer' : 'Jouer'}
-            onPress={isAdmin ? undefined : () => navigation.navigate('PlayerMenu')}
+            onPress={() => navigation.navigate(isAdmin ? 'AdminMenu' : 'PlayerMenu')}
+            variant="primary"
           />
         </View>
 
-        <Pressable
-          accessibilityRole="button"
+        <Button
+          label="Se déconnecter"
           onPress={clearSessionAsync}
           style={styles.logoutButton}
-        >
-          <Text style={styles.logoutButtonText}>Se déconnecter</Text>
-        </Pressable>
+          variant="secondary"
+        />
       </View>
     </View>
   );
