@@ -4,13 +4,15 @@ import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import LoginScreen from '../screens/LoginScreen/LoginScreen';
 import MainScreen from '../screens/MainScreen/MainScreen';
+import PlayerMenuScreen from '../screens/PlayerMenuScreen/PlayerMenuScreen';
 import RegisterScreen from '../screens/RegisterScreen/RegisterScreen';
 import { useAuthStore } from '../stores/useAuthStore';
-import { theme } from '../ui/theme';
+import { theme } from '../components/ui/theme';
 
 export type RootStackParamList = {
   Login: undefined;
   Main: undefined;
+  PlayerMenu: undefined;
   Register: undefined;
 };
 
@@ -42,7 +44,12 @@ export default function RootNavigator() {
             <Stack.Screen name="Register" component={RegisterScreen} />
           </>
         ) : (
-          <Stack.Screen name="Main" component={MainScreen} />
+          <>
+            <Stack.Screen name="Main" component={MainScreen} />
+            {user.role === 'Player' && (
+              <Stack.Screen name="PlayerMenu" component={PlayerMenuScreen} />
+            )}
+          </>
         )}
       </Stack.Navigator>
     </NavigationContainer>

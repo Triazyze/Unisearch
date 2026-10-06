@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { theme } from '../../ui/theme';
+import { theme } from '../../components/ui/theme';
 
 export const styles = StyleSheet.create({
   screen: {
@@ -41,5 +41,11 @@ export const styles = StyleSheet.create({
   },
   accountLink: {
     marginTop: 20,
+  },
+    errorMessage: {
+    color: '#B3261E',
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: 16,
   },
 });

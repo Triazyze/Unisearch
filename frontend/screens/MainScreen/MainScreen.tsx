@@ -1,10 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
 import { Pressable, Text, View } from 'react-native';
+import { useAppNavigation } from '../../navigation/useAppNavigation';
 import { useAuthStore } from '../../stores/useAuthStore';
-import { PrimaryButton } from '../../ui/PrimaryButton';
+import { PrimaryButton } from '../../components/ui/PrimaryButton';
 import { styles } from './MainScreenStyle';
 
 export default function MainScreen() {
+  const navigation = useAppNavigation();
   const clearSessionAsync = useAuthStore((state) => state.clearSessionAsync);
   const user = useAuthStore((state) => state.user);
 
@@ -30,7 +32,10 @@ export default function MainScreen() {
           <Text style={styles.cardDescription}>
             {isAdmin ? 'Consultez ou générez des grilles.' : 'Deux grilles disponibles.'}
           </Text>
-          <PrimaryButton label={isAdmin ? 'Administrer' : 'Jouer'} />
+          <PrimaryButton
+            label={isAdmin ? 'Administrer' : 'Jouer'}
+            onPress={isAdmin ? undefined : () => navigation.navigate('PlayerMenu')}
+          />
         </View>
 
         <Pressable
