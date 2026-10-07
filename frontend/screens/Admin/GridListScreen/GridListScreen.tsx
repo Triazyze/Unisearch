@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { TextLink } from '../../../components/ui/TextLink';
 import { theme } from '../../../components/ui/theme';
 import { useAppNavigation } from '../../../navigation/useAppNavigation';
@@ -64,17 +64,22 @@ export default function GridListScreen() {
         {grids !== null && grids.length > 0 && (
           <ScrollView contentContainerStyle={styles.gridList} showsVerticalScrollIndicator={false}>
             {grids.map((grid, index) => (
-              <View key={grid.id} style={styles.gridCard}>
+              <Pressable
+                accessibilityLabel={`Voir Grille ${index + 1}`}
+                accessibilityRole="button"
+                key={grid.id}
+                onPress={() => navigation.navigate('AdminGridDetail', { gridId: grid.id })}
+                style={styles.gridCard}
+              >
                 <Text style={styles.gridTitle}>
-                  Grille {index + 1} · {grid.size} × {grid.size} · {grid.wordCount} {grid.wordCount > 1 ? 'mots' : 'mot'}
+                  Grille {index + 1} · {grid.size} × {grid.size} · {grid.wordCount}{' '}
+                  {grid.wordCount > 1 ? 'mots' : 'mot'}
                 </Text>
-                <Text style={styles.gridDescription}>
-                  Difficulté : {grid.difficulty}
-                </Text>
+                <Text style={styles.gridDescription}>Difficulté : {grid.difficulty}</Text>
                 <Text style={styles.packDescription}>
                   {grid.pack === null ? 'Aucun pack attribué' : `Pack : ${grid.pack.name}`}
                 </Text>
-              </View>
+              </Pressable>
             ))}
           </ScrollView>
         )}

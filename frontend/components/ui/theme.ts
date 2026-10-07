@@ -4,6 +4,7 @@ export const theme = {
     darkText: '#27242B',
     mutedText: '#6D667A',
     primary: '#40227F',
+    selection: '#1EA9E8',
     white: '#FFFFFF',
     link: '#5531B0',
   },

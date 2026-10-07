@@ -23,7 +23,12 @@ export default function AdminMenuScreen() {
             onPress={() => navigation.navigate('AdminGridList')}
             variant="primary"
           />
-          <Button label="Générer une grille" style={styles.nextAction} variant="primary" />
+          <Button
+            label="Générer une grille"
+            onPress={() => navigation.navigate('AdminGenerateGrid')}
+            style={styles.nextAction}
+            variant="primary"
+          />
         </View>
       </View>
     </View>

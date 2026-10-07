@@ -2,7 +2,12 @@ import { Modal, StyleSheet, Text, View } from 'react-native';
 import { Button } from './Button';
 import { theme } from './theme';
 
-type AppModalProps = {
+export type AppModalOption = {
+  label: string;
+  value: number | string;
+};
+
+type ActionModalProps = {
   actionLabel: string;
   message: string;
   onAction: () => void;
@@ -10,16 +15,53 @@ type AppModalProps = {
   visible: boolean;
 };
 
-export function AppModal({ actionLabel, message, onAction, title, visible }: AppModalProps) {
+type OptionModalProps = {
+  message?: string;
+  onDismiss: () => void;
+  onOptionPress: (value: AppModalOption['value']) => void;
+  options: AppModalOption[];
+  title: string;
+  visible: boolean;
+};
+
+type AppModalProps = ActionModalProps | OptionModalProps;
+
+export function AppModal(props: AppModalProps) {
+  const isOptionModal = 'options' in props;
+
   return (
-    <Modal animationType="fade" onRequestClose={onAction} transparent visible={visible}>
+    <Modal
+      animationType="fade"
+      onRequestClose={isOptionModal ? props.onDismiss : props.onAction}
+      transparent
+      visible={props.visible}
+    >
       <View style={styles.backdrop}>
         <View accessibilityViewIsModal style={styles.content}>
           <Text accessibilityRole="header" style={styles.title}>
-            {title}
+            {props.title}
           </Text>
-          <Text style={styles.message}>{message}</Text>
-          <Button label={actionLabel} onPress={onAction} style={styles.action} variant="primary" />
+          {props.message !== undefined && <Text style={styles.message}>{props.message}</Text>}
+
+          {isOptionModal ? (
+            <View style={styles.options}>
+              {props.options.map((option) => (
+                <Button
+                  key={`${option.value}`}
+                  label={option.label}
+                  onPress={() => props.onOptionPress(option.value)}
+                  variant="secondary"
+                />
+              ))}
+            </View>
+          ) : (
+            <Button
+              label={props.actionLabel}
+              onPress={props.onAction}
+              style={styles.action}
+              variant="primary"
+            />
+          )}
         </View>
       </View>
     </Modal>
@@ -53,6 +95,10 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   action: {
+    marginTop: 24,
+  },
+  options: {
+    gap: 8,
     marginTop: 24,
   },
 });

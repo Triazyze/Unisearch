@@ -4,6 +4,8 @@ import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import AdminMenuScreen from '../screens/Admin/AdminMenuScreen/AdminMenuScreen';
 import GridListScreen from '../screens/Admin/GridListScreen/GridListScreen';
+import GridDetailScreen from '../screens/Admin/GridDetailScreen/GridDetailScreen';
+import GenerateGridScreen from '../screens/Admin/GenerateGridScreen/GenerateGridScreen';
 import LoginScreen from '../screens/LoginScreen/LoginScreen';
 import MainScreen from '../screens/MainScreen/MainScreen';
 import PlayerMenuScreen from '../screens/PlayerMenuScreen/PlayerMenuScreen';
@@ -14,6 +16,8 @@ import { theme } from '../components/ui/theme';
 export type RootStackParamList = {
   AdminMenu: undefined;
   AdminGridList: undefined;
+  AdminGridDetail: { gridId: string };
+  AdminGenerateGrid: undefined;
   Login: undefined;
   Main: undefined;
   PlayerMenu: undefined;
@@ -57,6 +61,8 @@ export default function RootNavigator() {
               <>
                 <Stack.Screen name="AdminMenu" component={AdminMenuScreen} />
                 <Stack.Screen name="AdminGridList" component={GridListScreen} />
+                <Stack.Screen name="AdminGridDetail" component={GridDetailScreen} />
+                <Stack.Screen name="AdminGenerateGrid" component={GenerateGridScreen} />
               </>
             )}
           </>

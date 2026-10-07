@@ -14,15 +14,15 @@ type TextFieldProps = TextInputProps & {
   label: string;
 };
 
-export function TextField({ containerStyle, label, ...inputProps }: TextFieldProps) {
+export function TextField({ containerStyle, label, style, ...inputProps }: TextFieldProps) {
   return (
     <View style={containerStyle}>
       <Text style={styles.label}>{label}</Text>
       <TextInput
+        {...inputProps}
         accessibilityLabel={label}
         placeholderTextColor={styles.placeholder.color}
-        style={styles.input}
-        {...inputProps}
+        style={[styles.input, style]}
       />
     </View>
   );
