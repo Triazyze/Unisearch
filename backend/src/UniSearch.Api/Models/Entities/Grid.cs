@@ -21,6 +21,9 @@ public class Grid
     [BsonElement("difficulty")]
     required public string Difficulty { get; set; }
 
+    [BsonElement("updatedAt")]
+    required public DateTime UpdatedAt { get; set; }
+
     [BsonElement("pack")]
     required public PackDetails? Pack { get; set; }
 

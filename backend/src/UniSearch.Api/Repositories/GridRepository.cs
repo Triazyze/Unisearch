@@ -44,7 +44,8 @@ public sealed class GridRepository
     {
         var filter = Builders<Grid>.Filter.Eq(grid => grid.Id, id);
         var update = Builders<Grid>.Update
-            .Set(grid => grid.Pack, pack);
+            .Set(grid => grid.Pack, pack)
+            .Set(grid => grid.UpdatedAt, DateTime.UtcNow);
 
         await _grids.UpdateOneAsync(filter, update);
     }

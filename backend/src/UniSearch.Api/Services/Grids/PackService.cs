@@ -36,6 +36,7 @@ public sealed class PackService
                 Letters = [.. grid.Letters],
                 Words = [.. grid.Words],
                 Difficulty = grid.Difficulty,
+                UpdatedAt = grid.UpdatedAt,
             }).ToList(),
         };
     }

@@ -12,5 +12,7 @@ public sealed class AdminGridResponse
 
     public string Difficulty { get; init; } = string.Empty;
 
+    public DateTime UpdatedAt { get; init; }
+
     public PackResponse? Pack { get; init; }
 }

@@ -28,6 +28,7 @@ public sealed class JwtService
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+            new Claim(JwtRegisteredClaimNames.Name, user.Username),
             new Claim("role", user.Role.ToString()),
         };
 

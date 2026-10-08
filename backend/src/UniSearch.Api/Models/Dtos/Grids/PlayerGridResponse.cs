@@ -11,4 +11,6 @@ public sealed class PlayerGridResponse
     public List<string> Words { get; init; } = [];
 
     public string Difficulty { get; init; } = string.Empty;
+
+    public DateTime UpdatedAt { get; init; }
 }

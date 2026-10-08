@@ -17,6 +17,8 @@ module.exports = defineConfig([
     rules: {
       // Utile en développement, mais à éviter dans le code livré : avertissement, pas blocage.
       'no-console': 'warn',
+      // Faux positif avec l'import par défaut officiel d'Axios.
+      'import/no-named-as-default-member': 'off',
     },
   },
 ]);

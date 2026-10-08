@@ -12,7 +12,7 @@ using MongoDB.Bson;
 namespace UniSearch.Api.Controllers;
 
 [ApiController]
-[Route("api/grid/{gridId}/verification")]
+[Route("api/grids/{gridId}/verification")]
 public sealed class GridVerificationController : ControllerBase
 {
     private readonly GridVerificationService _gridVerificationService;
