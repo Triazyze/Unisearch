@@ -6,6 +6,7 @@ export type PlayerGrid = {
   id: string;
   letters: string[];
   size: number;
+  updatedAt: string;
   words: string[];
 };
 
@@ -19,7 +20,9 @@ export type PlayerPack = {
 
 export async function getTestPackAsync(): Promise<PlayerPack> {
   if (apiBaseUrl === undefined || apiBaseUrl.length === 0) {
-    throw new Error("La requête de récupération du pack de test n'a pas réussi à atteindre le serveur.");
+    throw new Error(
+      "La requête de récupération du pack de test n'a pas réussi à atteindre le serveur.",
+    );
   }
 
   try {

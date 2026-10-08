@@ -42,7 +42,7 @@ export const styles = StyleSheet.create({
   accountLink: {
     marginTop: 20,
   },
-    errorMessage: {
+  errorMessage: {
     color: '#B3261E',
     fontSize: 13,
     lineHeight: 18,

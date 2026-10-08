@@ -27,6 +27,7 @@ public sealed class DatabaseSeeder
             "CHAT",
         ],
         Difficulty = "Test",
+        UpdatedAt = DateTime.UtcNow,
         Pack = new Grid.PackDetails
         {
             Name = "test",
@@ -54,6 +55,7 @@ public sealed class DatabaseSeeder
             "LION",
         ],
         Difficulty = "Test",
+        UpdatedAt = DateTime.UtcNow,
         Pack = new Grid.PackDetails
         {
             Name = "test",
@@ -108,6 +110,12 @@ public sealed class DatabaseSeeder
             && existingGrid.Letters.SequenceEqual(expectedGrid.Letters)
             && existingGrid.Words.SequenceEqual(expectedGrid.Words)
             && existingGrid.Difficulty == expectedGrid.Difficulty;
+    }
+
+    private static bool HasSamePack(Grid.PackDetails? firstPack, Grid.PackDetails? secondPack)
+    {
+        return firstPack?.Name == secondPack?.Name
+            && firstPack?.Date == secondPack?.Date;
     }
 
     private static bool IsExpectedSeedUser(User? userByUsername, User? userByEmail, string username, string email, Role role)
@@ -167,7 +175,11 @@ public sealed class DatabaseSeeder
         if (HasExpectedGridContent(existingGrid, expectedGrid))
         {
             // Met à niveau les métadonnées de pack des grilles de test déjà seedées.
-            await _gridRepository.SetPackAsync(expectedGrid.Id, expectedGrid.Pack);
+            if (!HasSamePack(existingGrid.Pack, expectedGrid.Pack))
+            {
+                await _gridRepository.SetPackAsync(expectedGrid.Id, expectedGrid.Pack);
+            }
+
             return;
         }
 

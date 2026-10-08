@@ -32,7 +32,11 @@ function getAuthErrorMessage(error: unknown, fallbackMessage: string): string {
   return fallbackMessage;
 }
 
-export async function registerAsync(username: string, email: string, password: string ): Promise<string> {
+export async function registerAsync(
+  username: string,
+  email: string,
+  password: string,
+): Promise<string> {
   if (apiBaseUrl === undefined || apiBaseUrl.length === 0) {
     throw new Error("La requête d'inscription n'a pas réussi à atteindre le serveur.");
   }

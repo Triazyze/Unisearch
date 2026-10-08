@@ -155,6 +155,7 @@ public sealed class GridCreationService
                 Letters = ConvertCellsToRows(lettersInGrid),
                 Words = [.. request.Words],
                 Difficulty = request.Difficulty,
+                UpdatedAt = DateTime.UtcNow,
                 Pack = null,
             };
 

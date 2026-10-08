@@ -9,6 +9,7 @@ export type AdminGridSummary = {
     name: string;
   } | null;
   size: number;
+  updatedAt: string;
   wordCount: number;
 };
 
@@ -21,6 +22,7 @@ export type AdminGridDetail = {
     name: string;
   } | null;
   size: number;
+  updatedAt: string;
   words: string[];
 };
 

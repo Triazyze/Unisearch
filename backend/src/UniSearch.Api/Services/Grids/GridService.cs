@@ -31,6 +31,7 @@ public sealed class GridService
             Id = grid.Id,
             Size = grid.Size,
             Difficulty = grid.Difficulty,
+            UpdatedAt = grid.UpdatedAt,
             Pack = ToPackResponse(grid.Pack),
             WordCount = grid.Words.Count,
         }).ToList();
@@ -46,6 +47,7 @@ public sealed class GridService
             Difficulty = grid.Difficulty,
             Words = [.. grid.Words],
             Pack = ToPackResponse(grid.Pack),
+            UpdatedAt = grid.UpdatedAt,
         };
     }
 
