@@ -1,24 +1,8 @@
 import { isAxiosError } from 'axios';
+import type { RemotePlayerPack } from '../../types/player/RemotePlayerGrid';
 import { apiBaseUrl, apiClient } from '../http/apiClient';
 
-export type PlayerGrid = {
-  difficulty: string;
-  id: string;
-  letters: string[];
-  size: number;
-  updatedAt: string;
-  words: string[];
-};
-
-export type PlayerPack = {
-  grids: PlayerGrid[];
-  pack: {
-    date: string | null;
-    name: string;
-  };
-};
-
-export async function getTestPackAsync(): Promise<PlayerPack> {
+export async function getTestPackAsync(): Promise<RemotePlayerPack> {
   if (apiBaseUrl === undefined || apiBaseUrl.length === 0) {
     throw new Error(
       "La requête de récupération du pack de test n'a pas réussi à atteindre le serveur.",
@@ -26,7 +10,7 @@ export async function getTestPackAsync(): Promise<PlayerPack> {
   }
 
   try {
-    const response = await apiClient.get<PlayerPack>('/api/packs/player/test');
+    const response = await apiClient.get<RemotePlayerPack>('/api/packs/player/test');
 
     return response.data;
   } catch (error) {

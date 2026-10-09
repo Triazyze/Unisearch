@@ -3,12 +3,13 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { TextLink } from '../../components/ui/TextLink';
 import { useAppNavigation } from '../../navigation/useAppNavigation';
-import { getTestPackAsync, type PlayerPack } from '../../services/packs/playerPackService';
+import type { RemotePlayerPack } from '../../types/player/RemotePlayerGrid';
+import { getTestPackAsync } from '../../services/packs/playerPackService';
 import { styles } from './PlayerMenuScreenStyle';
 
 export default function PlayerMenuScreen() {
   const navigation = useAppNavigation();
-  const [pack, setPack] = useState<PlayerPack | null>(null);
+  const [pack, setPack] = useState<RemotePlayerPack | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
