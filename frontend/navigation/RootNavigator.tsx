@@ -8,7 +8,7 @@ import GridDetailScreen from '../screens/Admin/GridDetailScreen/GridDetailScreen
 import GenerateGridScreen from '../screens/Admin/GenerateGridScreen/GenerateGridScreen';
 import LoginScreen from '../screens/LoginScreen/LoginScreen';
 import MainScreen from '../screens/MainScreen/MainScreen';
-import PlayerMenuScreen from '../screens/PlayerMenuScreen/PlayerMenuScreen';
+import PlayerMenuScreen from '../screens/Player/PlayerMenuScreen/PlayerMenuScreen';
 import RegisterScreen from '../screens/RegisterScreen/RegisterScreen';
 import { useAuthStore } from '../stores/useAuthStore';
 import { theme } from '../components/ui/theme';

@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { theme } from '../../components/ui/theme';
+import { theme } from '../../../components/ui/theme';
 
 export const styles = StyleSheet.create({
   screen: {

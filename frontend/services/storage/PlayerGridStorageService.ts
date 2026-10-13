@@ -2,7 +2,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { RemotePlayerGrid, RemotePlayerPack } from '../../types/player/RemotePlayerGrid';
 import type { LocalPlayerGrid, LocalPlayerPack } from '../../types/player/LocalPlayerGrid';
 
-
 // Fonctions pour lire et sauvegarder les packs et grilles de joueurs dans le stockage local
 export async function saveDownloadedPackAsync(
   userId: string,
@@ -23,7 +22,10 @@ export async function saveDownloadedPackAsync(
   );
 }
 
-export async function readPlayerPackAsync(userId: string,packName: string): Promise<LocalPlayerPack | null> {
+export async function readPlayerPackAsync(
+  userId: string,
+  packName: string,
+): Promise<LocalPlayerPack | null> {
   const pack = await AsyncStorage.getItem(getPackStorageKey(userId, packName));
   if (pack === null) {
     return null;
@@ -31,7 +33,15 @@ export async function readPlayerPackAsync(userId: string,packName: string): Prom
   return JSON.parse(pack) as LocalPlayerPack;
 }
 
-export async function saveDownloadedGridAsync(userId: string,downloadedGrid: RemotePlayerGrid): Promise<void> {
+export async function saveDownloadedGridAsync(
+  userId: string,
+  downloadedGrid: RemotePlayerGrid,
+): Promise<void> {
+  const existingGrid = await readPlayerGridAsync(userId, downloadedGrid.id);
+  if (existingGrid?.updatedAt === downloadedGrid.updatedAt) {
+    return;
+  }
+
   const localGrid: LocalPlayerGrid = {
     gridId: downloadedGrid.id,
     size: downloadedGrid.size,
@@ -51,7 +61,10 @@ export async function saveDownloadedGridAsync(userId: string,downloadedGrid: Rem
   );
 }
 
-export async function readPlayerGridAsync(userId: string,gridId: string): Promise<LocalPlayerGrid | null> {
+export async function readPlayerGridAsync(
+  userId: string,
+  gridId: string,
+): Promise<LocalPlayerGrid | null> {
   const grid = await AsyncStorage.getItem(getGridStorageKey(userId, gridId));
   if (grid === null) {
     return null;
@@ -60,10 +73,7 @@ export async function readPlayerGridAsync(userId: string,gridId: string): Promis
 }
 
 export async function savePlayerGridAsync(userId: string, grid: LocalPlayerGrid): Promise<void> {
-  await AsyncStorage.setItem(
-    getGridStorageKey(userId, grid.gridId),
-    JSON.stringify(grid),
-  );
+  await AsyncStorage.setItem(getGridStorageKey(userId, grid.gridId), JSON.stringify(grid));
 }
 
 // Fonctions pour gérer les grilles en attente de validation
