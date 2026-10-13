@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { TextLink } from '../../../components/ui/TextLink';
 import { useAppNavigation } from '../../../navigation/useAppNavigation';
 import { useAuthStore } from '../../../stores/useAuthStore';
@@ -92,7 +92,15 @@ export default function PlayerMenuScreen() {
         {grids !== null && (
           <View style={styles.gridList}>
             {grids.map((grid, index) => (
-              <View key={grid.gridId} style={styles.gridCard}>
+              <Pressable
+                accessibilityLabel={`Jouer la grille ${index + 1}`}
+                accessibilityRole="button"
+                key={grid.gridId}
+                onPress={() =>
+                  navigation.navigate('Game', { gridId: grid.gridId, gridNumber: index + 1 })
+                }
+                style={styles.gridCard}
+              >
                 <View style={styles.gridHeader}>
                   <Text style={styles.gridTitle}>
                     Grille {index + 1} · {grid.size} × {grid.size}
@@ -106,7 +114,7 @@ export default function PlayerMenuScreen() {
                 <Text style={styles.gridDescription}>
                   {grid.difficulty} · {grid.words.length} {grid.words.length > 1 ? 'mots' : 'mot'}
                 </Text>
-              </View>
+              </Pressable>
             ))}
           </View>
         )}
