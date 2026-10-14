@@ -42,6 +42,9 @@ export const styles = StyleSheet.create({
     minHeight: 108,
     padding: 16,
   },
+  pendingGridCard: {
+    opacity: 0.55,
+  },
   gridHeader: {
     alignItems: 'center',
     flexDirection: 'row',
@@ -59,9 +62,23 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
   },
+  pendingStatusBadge: {
+    backgroundColor: '#FFF3E0',
+    borderColor: '#E88A1C',
+  },
+  validatedStatusBadge: {
+    backgroundColor: '#E9F7EF',
+    borderColor: '#2D9D5B',
+  },
   statusText: {
     color: theme.colors.darkText,
     fontSize: 12,
+  },
+  pendingStatusText: {
+    color: '#A55300',
+  },
+  validatedStatusText: {
+    color: '#1E7A43',
   },
   gridDescription: {
     color: theme.colors.mutedText,

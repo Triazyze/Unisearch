@@ -1,5 +1,6 @@
+import { useFocusEffect } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { TextLink } from '../../../components/ui/TextLink';
 import { useAppNavigation } from '../../../navigation/useAppNavigation';
@@ -10,7 +11,7 @@ import {
   readPlayerGridAsync,
   readPlayerPackAsync,
   saveDownloadedPackAsync,
-} from '../../../services/storage/PlayerGridStorageService';
+} from '../../../services/storage/playerGridStorageService';
 import { styles } from './PlayerMenuScreenStyle';
 
 const testPackName = 'test';
@@ -21,58 +22,61 @@ export default function PlayerMenuScreen() {
   const [grids, setGrids] = useState<LocalPlayerGrid[] | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    let isActive = true;
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
 
-    async function loadTestPackAsync() {
-      if (user === null) {
-        return;
-      }
-
-      let downloadErrorMessage: string | null = null;
-
-      try {
-        const testPack = await getTestPackAsync();
-        await saveDownloadedPackAsync(user.id, testPack);
-      } catch (error) {
-        downloadErrorMessage =
-          error instanceof Error ? error.message : 'Le pack de test est indisponible.';
-      }
-
-      try {
-        const localPack = await readPlayerPackAsync(user.id, testPackName);
-        if (localPack === null) {
-          throw new Error(downloadErrorMessage ?? 'Le pack de test est indisponible.');
+      async function loadTestPackAsync() {
+        if (user === null) {
+          return;
         }
 
-        const localGrids: LocalPlayerGrid[] = [];
-        for (const gridId of localPack.gridIds) {
-          const localGrid = await readPlayerGridAsync(user.id, gridId);
-          if (localGrid === null) {
-            throw new Error('Une grille du pack de test est introuvable dans le stockage local.');
+        let downloadErrorMessage: string | null = null;
+
+        try {
+          const testPack = await getTestPackAsync();
+          await saveDownloadedPackAsync(user.id, testPack);
+        } catch (error) {
+          downloadErrorMessage =
+            error instanceof Error ? error.message : 'Le pack de test est indisponible.';
+        }
+
+        try {
+          const localPack = await readPlayerPackAsync(user.id, testPackName);
+          if (localPack === null) {
+            throw new Error(downloadErrorMessage ?? 'Le pack de test est indisponible.');
           }
 
-          localGrids.push(localGrid);
-        }
+          const localGrids: LocalPlayerGrid[] = [];
+          for (const gridId of localPack.gridIds) {
+            const localGrid = await readPlayerGridAsync(user.id, gridId);
+            if (localGrid === null) {
+              throw new Error('Une grille du pack de test est introuvable dans le stockage local.');
+            }
 
-        if (isActive) {
-          setGrids(localGrids);
-        }
-      } catch (error) {
-        if (isActive) {
-          setErrorMessage(
-            error instanceof Error ? error.message : 'Le pack de test est indisponible.',
-          );
+            localGrids.push(localGrid);
+          }
+
+          if (isActive) {
+            setGrids(localGrids);
+            setErrorMessage(null);
+          }
+        } catch (error) {
+          if (isActive) {
+            setErrorMessage(
+              error instanceof Error ? error.message : 'Le pack de test est indisponible.',
+            );
+          }
         }
       }
-    }
 
-    void loadTestPackAsync();
+      void loadTestPackAsync();
 
-    return () => {
-      isActive = false;
-    };
-  }, [user]);
+      return () => {
+        isActive = false;
+      };
+    }, [user]),
+  );
 
   return (
     <View style={styles.screen}>
@@ -91,31 +95,54 @@ export default function PlayerMenuScreen() {
 
         {grids !== null && (
           <View style={styles.gridList}>
-            {grids.map((grid, index) => (
-              <Pressable
-                accessibilityLabel={`Jouer la grille ${index + 1}`}
-                accessibilityRole="button"
-                key={grid.gridId}
-                onPress={() =>
-                  navigation.navigate('Game', { gridId: grid.gridId, gridNumber: index + 1 })
-                }
-                style={styles.gridCard}
-              >
-                <View style={styles.gridHeader}>
-                  <Text style={styles.gridTitle}>
-                    Grille {index + 1} · {grid.size} × {grid.size}
-                  </Text>
+            {grids.map((grid, index) => {
+              const isPending = grid.status === 'Pending';
 
-                  <View style={styles.statusBadge}>
-                    <Text style={styles.statusText}>{getGridStatusLabel(grid.status)}</Text>
+              return (
+                <Pressable
+                  accessibilityLabel={
+                    isPending
+                      ? `Grille ${index + 1} en attente de validation`
+                      : `Jouer la grille ${index + 1}`
+                  }
+                  accessibilityRole="button"
+                  disabled={isPending}
+                  key={grid.gridId}
+                  onPress={() =>
+                    navigation.navigate('Game', { gridId: grid.gridId, gridNumber: index + 1 })
+                  }
+                  style={[styles.gridCard, isPending && styles.pendingGridCard]}
+                >
+                  <View style={styles.gridHeader}>
+                    <Text style={styles.gridTitle}>
+                      Grille {index + 1} · {grid.size} × {grid.size}
+                    </Text>
+
+                    <View
+                      style={[
+                        styles.statusBadge,
+                        grid.status === 'Pending' && styles.pendingStatusBadge,
+                        grid.status === 'Validated' && styles.validatedStatusBadge,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.statusText,
+                          grid.status === 'Pending' && styles.pendingStatusText,
+                          grid.status === 'Validated' && styles.validatedStatusText,
+                        ]}
+                      >
+                        {getGridStatusLabel(grid.status)}
+                      </Text>
+                    </View>
                   </View>
-                </View>
 
-                <Text style={styles.gridDescription}>
-                  {grid.difficulty} · {grid.words.length} {grid.words.length > 1 ? 'mots' : 'mot'}
-                </Text>
-              </Pressable>
-            ))}
+                  <Text style={styles.gridDescription}>
+                    {grid.difficulty} · {grid.words.length} {grid.words.length > 1 ? 'mots' : 'mot'}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
         )}
       </View>

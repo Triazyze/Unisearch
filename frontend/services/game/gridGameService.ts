@@ -12,6 +12,15 @@ export type PlayerGameState = {
 };
 
 export function createPlayerGameState(grid: LocalPlayerGrid): PlayerGameState {
+  if (grid.status === 'Validated') {
+    return {
+      elapsedSeconds: 0,
+      foundTraces: [],
+      isCompleted: false,
+      traceAttempts: 0,
+    };
+  }
+
   const foundTraces = grid.traces;
 
   return {
@@ -19,6 +28,16 @@ export function createPlayerGameState(grid: LocalPlayerGrid): PlayerGameState {
     foundTraces,
     isCompleted: isGameCompleted(grid.words, foundTraces),
     traceAttempts: grid.traceAttempts,
+  };
+}
+
+export function createReplayPlayerGrid(grid: LocalPlayerGrid): LocalPlayerGrid {
+  return {
+    ...grid,
+    status: 'NotPlayed',
+    time: 0,
+    traceAttempts: 0,
+    traces: [],
   };
 }
 
@@ -147,4 +166,17 @@ export function formatElapsedTime(elapsedSeconds: number): string {
   const seconds = elapsedSeconds % 60;
 
   return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+export function createPendingPlayerGrid(
+  grid: LocalPlayerGrid,
+  gameState: PlayerGameState,
+): LocalPlayerGrid {
+  return {
+    ...grid,
+    status: 'Pending',
+    time: gameState.elapsedSeconds,
+    traceAttempts: gameState.traceAttempts,
+    traces: gameState.foundTraces,
+  };
 }

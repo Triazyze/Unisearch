@@ -1,6 +1,6 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 import { GridBoard } from '../../../components/grid/GridBoard';
 import { WordBoard } from '../../../components/grid/WordBoard';
@@ -11,13 +11,21 @@ import type { RootStackParamList } from '../../../navigation/RootNavigator';
 import {
   advancePlayerGame,
   applyTraceAttempt,
+  createPendingPlayerGrid,
   createPlayerGameState,
+  createReplayPlayerGrid,
   formatElapsedTime,
   getFoundWordIndexes,
   getHighlightedCells,
   type PlayerGameState,
-} from '../../../services/grids/playerGameService';
-import { readPlayerGridAsync } from '../../../services/storage/PlayerGridStorageService';
+} from '../../../services/game/gridGameService';
+import { verifyPlayerGridAsync } from '../../../services/grids/playerGridService';
+import {
+  readPlayerGridAsync,
+  removePendingGridIdAsync,
+  savePendingGridIdAsync,
+  savePlayerGridAsync,
+} from '../../../services/storage/playerGridStorageService';
 import { useAuthStore } from '../../../stores/useAuthStore';
 import type { LocalPlayerGrid } from '../../../types/player/LocalPlayerGrid';
 import { styles } from './GameScreenStyle';
@@ -29,6 +37,8 @@ export default function GameScreen({ navigation, route }: GameScreenProps) {
   const [grid, setGrid] = useState<LocalPlayerGrid | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [gameState, setGameState] = useState<PlayerGameState | null>(null);
+  const [completionMessage, setCompletionMessage] = useState('Tous les mots ont été trouvés.');
+  const savedCompletedGridIdReference = useRef<string | null>(null);
   const foundWordIndexes = useMemo(
     () =>
       grid === null || gameState === null
@@ -55,10 +65,18 @@ export default function GameScreen({ navigation, route }: GameScreenProps) {
           throw new Error('La grille demandée est introuvable dans le stockage local.');
         }
 
+        const playableGrid =
+          localGrid.status === 'Validated' ? createReplayPlayerGrid(localGrid) : localGrid;
+
+        if (localGrid.status === 'Validated') {
+          await savePlayerGridAsync(user.id, playableGrid);
+        }
+
         if (isActive) {
-          setGrid(localGrid);
+          setGrid(playableGrid);
           setErrorMessage(null);
-          setGameState(createPlayerGameState(localGrid));
+          setGameState(createPlayerGameState(playableGrid));
+          setCompletionMessage('Tous les mots ont été trouvés.');
         }
       } catch (error) {
         if (isActive) {
@@ -87,6 +105,55 @@ export default function GameScreen({ navigation, route }: GameScreenProps) {
 
     return () => clearInterval(timer);
   }, [gameState, grid]);
+
+  useEffect(() => {
+    if (
+      user === null ||
+      grid === null ||
+      gameState === null ||
+      !gameState.isCompleted ||
+      savedCompletedGridIdReference.current === grid.gridId
+    ) {
+      return;
+    }
+
+    const completedGrid = grid;
+    const completedGameState = gameState;
+    const currentUser = user;
+    savedCompletedGridIdReference.current = grid.gridId;
+
+    async function saveCompletedGridAsync() {
+      try {
+        const pendingGrid = createPendingPlayerGrid(completedGrid, completedGameState);
+
+        await savePlayerGridAsync(currentUser.id, pendingGrid);
+        await savePendingGridIdAsync(currentUser.id, pendingGrid.gridId);
+        setGrid(pendingGrid);
+
+        try {
+          await verifyPlayerGridAsync(pendingGrid);
+
+          const validatedGrid: LocalPlayerGrid = { ...pendingGrid, status: 'Validated' };
+          await savePlayerGridAsync(currentUser.id, validatedGrid);
+          await removePendingGridIdAsync(currentUser.id, validatedGrid.gridId);
+          setGrid(validatedGrid);
+          setCompletionMessage('La grille a été validée avec succès.');
+        } catch (error) {
+          const reason =
+            error instanceof Error
+              ? error.message
+              : "La requête de validation n'a pas réussi à atteindre le serveur.";
+
+          setCompletionMessage(`La grille est enregistrée en attente de validation. ${reason}`);
+        }
+      } catch {
+        savedCompletedGridIdReference.current = null;
+        setErrorMessage('La grille terminée n’a pas pu être enregistrée localement.');
+      }
+    }
+
+    void saveCompletedGridAsync();
+  }, [gameState, grid, user]);
 
   function handleTraceCompleted(
     start: { column: number; row: number },
@@ -161,8 +228,8 @@ export default function GameScreen({ navigation, route }: GameScreenProps) {
 
       <AppModal
         actionLabel="Continuer"
-        message="Tous les mots ont été trouvés."
-        onAction={() => undefined}
+        message={completionMessage}
+        onAction={() => navigation.goBack()}
         title="Grille terminée !"
         visible={gameState?.isCompleted ?? false}
       />
