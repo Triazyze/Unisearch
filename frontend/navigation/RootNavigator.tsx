@@ -2,6 +2,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { SynchronizationNotificationBar } from '../components/ui/SynchronizationNotificationBar';
+import { usePlayerGridSynchronization } from '../hooks/usePlayerGridSynchronization';
 import AdminMenuScreen from '../screens/Admin/AdminMenuScreen/AdminMenuScreen';
 import GridListScreen from '../screens/Admin/GridListScreen/GridListScreen';
 import GridDetailScreen from '../screens/Admin/GridDetailScreen/GridDetailScreen';
@@ -33,6 +35,8 @@ export default function RootNavigator() {
   const restoreSessionAsync = useAuthStore((state) => state.restoreSessionAsync);
   const user = useAuthStore((state) => state.user);
 
+  usePlayerGridSynchronization(user?.role === 'Player' ? user.id : null);
+
   useEffect(() => {
     void restoreSessionAsync();
   }, [restoreSessionAsync]);
@@ -46,38 +50,45 @@ export default function RootNavigator() {
   }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {user === null ? (
-          <>
-            <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="Register" component={RegisterScreen} />
-          </>
-        ) : (
-          <>
-            <Stack.Screen name="Main" component={MainScreen} />
-            {user.role === 'Player' && (
-              <>
-                <Stack.Screen name="PlayerMenu" component={PlayerMenuScreen} />
-                <Stack.Screen name="Game" component={GameScreen} />
-              </>
-            )}
-            {user.role === 'Admin' && (
-              <>
-                <Stack.Screen name="AdminMenu" component={AdminMenuScreen} />
-                <Stack.Screen name="AdminGridList" component={GridListScreen} />
-                <Stack.Screen name="AdminGridDetail" component={GridDetailScreen} />
-                <Stack.Screen name="AdminGenerateGrid" component={GenerateGridScreen} />
-              </>
-            )}
-          </>
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
+    <View style={styles.root}>
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          {user === null ? (
+            <>
+              <Stack.Screen name="Login" component={LoginScreen} />
+              <Stack.Screen name="Register" component={RegisterScreen} />
+            </>
+          ) : (
+            <>
+              <Stack.Screen name="Main" component={MainScreen} />
+              {user.role === 'Player' && (
+                <>
+                  <Stack.Screen name="PlayerMenu" component={PlayerMenuScreen} />
+                  <Stack.Screen name="Game" component={GameScreen} />
+                </>
+              )}
+              {user.role === 'Admin' && (
+                <>
+                  <Stack.Screen name="AdminMenu" component={AdminMenuScreen} />
+                  <Stack.Screen name="AdminGridList" component={GridListScreen} />
+                  <Stack.Screen name="AdminGridDetail" component={GridDetailScreen} />
+                  <Stack.Screen name="AdminGenerateGrid" component={GenerateGridScreen} />
+                </>
+              )}
+            </>
+          )}
+        </Stack.Navigator>
+      </NavigationContainer>
+
+      <SynchronizationNotificationBar />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   loadingScreen: {
     alignItems: 'center',
     backgroundColor: theme.colors.white,

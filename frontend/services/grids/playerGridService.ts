@@ -47,8 +47,9 @@ export async function verifyPlayerGridAsync(grid: LocalPlayerGrid): Promise<stri
   }
 }
 
-export async function syncPendingPlayerGridsAsync(userId: string): Promise<void> {
+export async function syncPendingPlayerGridsAsync(userId: string): Promise<string[]> {
   const pendingGridIds = await readPendingGridIdsAsync(userId);
+  const validatedGridIds: string[] = [];
 
   for (const gridId of pendingGridIds) {
     const grid = await readPlayerGridAsync(userId, gridId);
@@ -62,6 +63,7 @@ export async function syncPendingPlayerGridsAsync(userId: string): Promise<void>
       const validatedGrid: LocalPlayerGrid = { ...grid, status: 'Validated' };
       await savePlayerGridAsync(userId, validatedGrid);
       await removePendingGridIdAsync(userId, validatedGrid.gridId);
+      validatedGridIds.push(validatedGrid.gridId);
     } catch (error) {
       if (shouldResetPendingGrid(error)) {
         const notPlayedGrid = createNotPlayedPlayerGrid(grid);
@@ -73,6 +75,8 @@ export async function syncPendingPlayerGridsAsync(userId: string): Promise<void>
       // La grille reste en attente afin qu'une prochaine synchronisation puisse la renvoyer.
     }
   }
+
+  return validatedGridIds;
 }
 
 function createGridVerificationRequest(grid: LocalPlayerGrid): GridVerificationRequest {

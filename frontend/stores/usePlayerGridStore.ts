@@ -15,9 +15,12 @@ type PlayerGridState = {
   grids: LocalPlayerGrid[] | null;
   isLoading: boolean;
   isSynchronizing: boolean;
+  synchronizationMessage: string | null;
+  synchronizationMessageId: number;
+  clearSynchronizationMessage: () => void;
   loadTestPackAsync: (userId: string) => Promise<void>;
   refreshLocalGridsAsync: (userId: string) => Promise<void>;
-  syncPendingGridsAsync: (userId: string) => Promise<void>;
+  syncPendingGridsAsync: (userId: string, showNotification?: boolean) => Promise<string[]>;
 };
 
 export const usePlayerGridStore = create<PlayerGridState>()((set, get) => ({
@@ -25,6 +28,12 @@ export const usePlayerGridStore = create<PlayerGridState>()((set, get) => ({
   grids: null,
   isLoading: false,
   isSynchronizing: false,
+  synchronizationMessage: null,
+  synchronizationMessageId: 0,
+
+  clearSynchronizationMessage() {
+    set({ synchronizationMessage: null });
+  },
 
   async loadTestPackAsync(userId) {
     set({ errorMessage: null, isLoading: true });
@@ -72,16 +81,31 @@ export const usePlayerGridStore = create<PlayerGridState>()((set, get) => ({
     set({ errorMessage: null, grids: localGrids });
   },
 
-  async syncPendingGridsAsync(userId) {
+  async syncPendingGridsAsync(userId, showNotification = false) {
     if (get().isSynchronizing) {
-      return;
+      return [];
     }
 
     set({ isSynchronizing: true });
 
     try {
-      await syncPendingPlayerGridsAsync(userId);
+      const validatedGridIds = await syncPendingPlayerGridsAsync(userId);
+
+      if (showNotification && validatedGridIds.length > 0) {
+        const synchronizationMessage =
+          validatedGridIds.length === 1
+            ? '1 grille a été synchronisée.'
+            : `${validatedGridIds.length} grilles ont été synchronisées.`;
+
+        set({
+          synchronizationMessage,
+          synchronizationMessageId: get().synchronizationMessageId + 1,
+        });
+      }
+
       await get().refreshLocalGridsAsync(userId);
+
+      return validatedGridIds;
     } finally {
       set({ isSynchronizing: false });
     }
