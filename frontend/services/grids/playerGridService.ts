@@ -1,6 +1,13 @@
-import { isAxiosError } from 'axios';
 import type { LocalPlayerGrid } from '../../types/player/LocalPlayerGrid';
+import { createNotPlayedPlayerGrid } from '../game/gridGameService';
 import { apiBaseUrl, apiClient } from '../http/apiClient';
+import { ApiRequestError, createApiRequestError } from '../http/apiRequestError';
+import {
+  readPendingGridIdsAsync,
+  readPlayerGridAsync,
+  removePendingGridIdAsync,
+  savePlayerGridAsync,
+} from '../storage/playerGridStorageService';
 
 type GridVerificationRequest = {
   letters: string[];
@@ -20,7 +27,7 @@ type GridVerificationTrace = {
 
 export async function verifyPlayerGridAsync(grid: LocalPlayerGrid): Promise<string> {
   if (apiBaseUrl === undefined || apiBaseUrl.length === 0) {
-    throw new Error("La requête de validation n'a pas réussi à atteindre le serveur.");
+    throw new ApiRequestError("La requête de validation n'a pas réussi à atteindre le serveur.");
   }
 
   const request = createGridVerificationRequest(grid);
@@ -33,7 +40,38 @@ export async function verifyPlayerGridAsync(grid: LocalPlayerGrid): Promise<stri
 
     return response.data.message;
   } catch (error) {
-    throw new Error(getGridVerificationErrorMessage(error));
+    throw createApiRequestError(
+      error,
+      "La requête de validation n'a pas réussi à atteindre le serveur.",
+    );
+  }
+}
+
+export async function syncPendingPlayerGridsAsync(userId: string): Promise<void> {
+  const pendingGridIds = await readPendingGridIdsAsync(userId);
+
+  for (const gridId of pendingGridIds) {
+    const grid = await readPlayerGridAsync(userId, gridId);
+    if (grid === null || grid.status !== 'Pending') {
+      continue;
+    }
+
+    try {
+      await verifyPlayerGridAsync(grid);
+
+      const validatedGrid: LocalPlayerGrid = { ...grid, status: 'Validated' };
+      await savePlayerGridAsync(userId, validatedGrid);
+      await removePendingGridIdAsync(userId, validatedGrid.gridId);
+    } catch (error) {
+      if (shouldResetPendingGrid(error)) {
+        const notPlayedGrid = createNotPlayedPlayerGrid(grid);
+        await savePlayerGridAsync(userId, notPlayedGrid);
+        await removePendingGridIdAsync(userId, notPlayedGrid.gridId);
+        continue;
+      }
+
+      // La grille reste en attente afin qu'une prochaine synchronisation puisse la renvoyer.
+    }
   }
 }
 
@@ -53,14 +91,18 @@ function createGridVerificationRequest(grid: LocalPlayerGrid): GridVerificationR
   };
 }
 
-function getGridVerificationErrorMessage(error: unknown): string {
-  if (isAxiosError<{ message?: unknown }>(error)) {
-    const message = error.response?.data?.message;
-
-    if (typeof message === 'string' && message.length > 0) {
-      return message;
-    }
+function shouldResetPendingGrid(error: unknown): boolean {
+  if (!(error instanceof ApiRequestError) || error.apiErrorResponse === null) {
+    return false;
   }
 
-  return "La requête de validation n'a pas réussi à atteindre le serveur.";
+  return [
+    'BAD_REQUEST',
+    'FORBIDDEN',
+    'GRID_NOT_FOUND',
+    'LETTERS_INVALID',
+    'WORDS_INVALID',
+    'TRACE_MISMATCH',
+    'TRACES_INVALID',
+  ].includes(error.apiErrorResponse.errorCode);
 }

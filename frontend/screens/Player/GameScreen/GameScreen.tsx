@@ -13,16 +13,15 @@ import {
   applyTraceAttempt,
   createPendingPlayerGrid,
   createPlayerGameState,
-  createReplayPlayerGrid,
+  createNotPlayedPlayerGrid,
   formatElapsedTime,
   getFoundWordIndexes,
   getHighlightedCells,
   type PlayerGameState,
 } from '../../../services/game/gridGameService';
-import { verifyPlayerGridAsync } from '../../../services/grids/playerGridService';
+import { syncPendingPlayerGridsAsync } from '../../../services/grids/playerGridService';
 import {
   readPlayerGridAsync,
-  removePendingGridIdAsync,
   savePendingGridIdAsync,
   savePlayerGridAsync,
 } from '../../../services/storage/playerGridStorageService';
@@ -66,7 +65,7 @@ export default function GameScreen({ navigation, route }: GameScreenProps) {
         }
 
         const playableGrid =
-          localGrid.status === 'Validated' ? createReplayPlayerGrid(localGrid) : localGrid;
+          localGrid.status === 'Validated' ? createNotPlayedPlayerGrid(localGrid) : localGrid;
 
         if (localGrid.status === 'Validated') {
           await savePlayerGridAsync(user.id, playableGrid);
@@ -123,32 +122,39 @@ export default function GameScreen({ navigation, route }: GameScreenProps) {
     savedCompletedGridIdReference.current = grid.gridId;
 
     async function saveCompletedGridAsync() {
-      try {
-        const pendingGrid = createPendingPlayerGrid(completedGrid, completedGameState);
+      const pendingGrid = createPendingPlayerGrid(completedGrid, completedGameState);
 
+      try {
         await savePlayerGridAsync(currentUser.id, pendingGrid);
         await savePendingGridIdAsync(currentUser.id, pendingGrid.gridId);
         setGrid(pendingGrid);
-
-        try {
-          await verifyPlayerGridAsync(pendingGrid);
-
-          const validatedGrid: LocalPlayerGrid = { ...pendingGrid, status: 'Validated' };
-          await savePlayerGridAsync(currentUser.id, validatedGrid);
-          await removePendingGridIdAsync(currentUser.id, validatedGrid.gridId);
-          setGrid(validatedGrid);
-          setCompletionMessage('La grille a été validée avec succès.');
-        } catch (error) {
-          const reason =
-            error instanceof Error
-              ? error.message
-              : "La requête de validation n'a pas réussi à atteindre le serveur.";
-
-          setCompletionMessage(`La grille est enregistrée en attente de validation. ${reason}`);
-        }
       } catch {
         savedCompletedGridIdReference.current = null;
         setErrorMessage('La grille terminée n’a pas pu être enregistrée localement.');
+        return;
+      }
+
+      try {
+        await syncPendingPlayerGridsAsync(currentUser.id);
+        const synchronizedGrid = await readPlayerGridAsync(currentUser.id, pendingGrid.gridId);
+
+        if (synchronizedGrid?.status === 'Validated') {
+          setGrid(synchronizedGrid);
+          setCompletionMessage('La grille a été validée avec succès.');
+          return;
+        }
+
+        if (synchronizedGrid?.status === 'NotPlayed') {
+          setGrid(synchronizedGrid);
+          setCompletionMessage(
+            'La validation a été refusée par le serveur. La grille est de nouveau disponible.',
+          );
+          return;
+        }
+
+        setCompletionMessage('La grille est enregistrée en attente de validation.');
+      } catch {
+        setCompletionMessage('La grille est enregistrée en attente de validation.');
       }
     }
 

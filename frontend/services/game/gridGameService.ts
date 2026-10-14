@@ -31,7 +31,7 @@ export function createPlayerGameState(grid: LocalPlayerGrid): PlayerGameState {
   };
 }
 
-export function createReplayPlayerGrid(grid: LocalPlayerGrid): LocalPlayerGrid {
+export function createNotPlayedPlayerGrid(grid: LocalPlayerGrid): LocalPlayerGrid {
   return {
     ...grid,
     status: 'NotPlayed',

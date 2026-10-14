@@ -1,10 +1,10 @@
-import { isAxiosError } from 'axios';
 import type { RemotePlayerPack } from '../../types/player/RemotePlayerGrid';
 import { apiBaseUrl, apiClient } from '../http/apiClient';
+import { ApiRequestError, createApiRequestError } from '../http/apiRequestError';
 
 export async function getTestPackAsync(): Promise<RemotePlayerPack> {
   if (apiBaseUrl === undefined || apiBaseUrl.length === 0) {
-    throw new Error(
+    throw new ApiRequestError(
       "La requête de récupération du pack de test n'a pas réussi à atteindre le serveur.",
     );
   }
@@ -14,18 +14,9 @@ export async function getTestPackAsync(): Promise<RemotePlayerPack> {
 
     return response.data;
   } catch (error) {
-    throw new Error(getPackErrorMessage(error));
+    throw createApiRequestError(
+      error,
+      'Le pack de test est indisponible pour le moment. Vérifiez votre réseau et réessayez.',
+    );
   }
-}
-
-function getPackErrorMessage(error: unknown): string {
-  if (isAxiosError<{ message?: unknown }>(error)) {
-    const message = error.response?.data?.message;
-
-    if (typeof message === 'string' && message.length > 0) {
-      return message;
-    }
-  }
-
-  return 'Le pack de test est indisponible pour le moment. Vérifiez votre réseau et réessayez.';
 }
