@@ -1,81 +1,27 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { TextLink } from '../../../components/ui/TextLink';
 import { useAppNavigation } from '../../../navigation/useAppNavigation';
 import { useAuthStore } from '../../../stores/useAuthStore';
-import type { LocalPlayerGrid, PlayerGridStatus } from '../../../types/player/LocalPlayerGrid';
-import { getTestPackAsync } from '../../../services/packs/playerPackService';
-import {
-  readPlayerGridAsync,
-  readPlayerPackAsync,
-  saveDownloadedPackAsync,
-} from '../../../services/storage/playerGridStorageService';
+import { usePlayerGridStore } from '../../../stores/usePlayerGridStore';
+import type { PlayerGridStatus } from '../../../types/player/LocalPlayerGrid';
 import { styles } from './PlayerMenuScreenStyle';
-
-const testPackName = 'test';
 
 export default function PlayerMenuScreen() {
   const navigation = useAppNavigation();
   const user = useAuthStore((state) => state.user);
-  const [grids, setGrids] = useState<LocalPlayerGrid[] | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const errorMessage = usePlayerGridStore((state) => state.errorMessage);
+  const grids = usePlayerGridStore((state) => state.grids);
+  const loadTestPackAsync = usePlayerGridStore((state) => state.loadTestPackAsync);
 
   useFocusEffect(
     useCallback(() => {
-      let isActive = true;
-
-      async function loadTestPackAsync() {
-        if (user === null) {
-          return;
-        }
-
-        let downloadErrorMessage: string | null = null;
-
-        try {
-          const testPack = await getTestPackAsync();
-          await saveDownloadedPackAsync(user.id, testPack);
-        } catch (error) {
-          downloadErrorMessage =
-            error instanceof Error ? error.message : 'Le pack de test est indisponible.';
-        }
-
-        try {
-          const localPack = await readPlayerPackAsync(user.id, testPackName);
-          if (localPack === null) {
-            throw new Error(downloadErrorMessage ?? 'Le pack de test est indisponible.');
-          }
-
-          const localGrids: LocalPlayerGrid[] = [];
-          for (const gridId of localPack.gridIds) {
-            const localGrid = await readPlayerGridAsync(user.id, gridId);
-            if (localGrid === null) {
-              throw new Error('Une grille du pack de test est introuvable dans le stockage local.');
-            }
-
-            localGrids.push(localGrid);
-          }
-
-          if (isActive) {
-            setGrids(localGrids);
-            setErrorMessage(null);
-          }
-        } catch (error) {
-          if (isActive) {
-            setErrorMessage(
-              error instanceof Error ? error.message : 'Le pack de test est indisponible.',
-            );
-          }
-        }
+      if (user !== null) {
+        void loadTestPackAsync(user.id);
       }
-
-      void loadTestPackAsync();
-
-      return () => {
-        isActive = false;
-      };
-    }, [user]),
+    }, [loadTestPackAsync, user]),
   );
 
   return (
