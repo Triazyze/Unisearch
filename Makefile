@@ -7,15 +7,20 @@ COMPOSE = docker compose \
 	-f docker-compose.yml \
 	-f docker-compose.$(ENV).yml
 
+TEST_COMPOSE = docker compose \
+	-p unisearch-test \
+	--env-file .env.test \
+	-f docker-compose.yml \
+	-f docker-compose.test.yml
 
-.PHONY: up down build rebuild logs ps clean prune check-env
+
+.PHONY: up down build rebuild logs ps clean prune check-env test
 
 
 check-env:
 	@if [ "$(ENV)" != "dev" ] && \
-	    [ "$(ENV)" != "test" ] && \
 	    [ "$(ENV)" != "prod" ]; then \
-		echo "Erreur : ENV doit être dev, test ou prod."; \
+		echo "Erreur : ENV doit être dev ou prod."; \
 		echo "Exemple : make up ENV=dev"; \
 		exit 1; \
 	fi
@@ -51,3 +56,6 @@ clean: check-env
 
 prune:
 	docker system prune
+
+test:
+	$(TEST_COMPOSE) up --build --abort-on-container-exit --exit-code-from api --no-attach mongodb

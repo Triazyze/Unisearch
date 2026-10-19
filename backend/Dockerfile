@@ -3,6 +3,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS base
 
 WORKDIR /app
 
+COPY .editorconfig ./
 COPY ./src ./src
 
 RUN dotnet restore ./src/UniSearch.Api/UniSearch.Api.csproj

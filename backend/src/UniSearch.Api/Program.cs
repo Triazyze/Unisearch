@@ -239,3 +239,10 @@ app.UseAuthorization();
 app.MapControllers().RequireRateLimiting(ApiRateLimitPolicy);
 
 app.Run();
+
+/// <summary>
+/// Classe permettant de rendre la classe Program accessible aux tests d'intégration.
+/// </summary>
+public partial class Program
+{
+}
