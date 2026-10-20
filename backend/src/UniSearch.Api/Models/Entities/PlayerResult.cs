@@ -10,9 +10,11 @@ public class PlayerResult
     public string Id { get; set; } = string.Empty;
 
     [BsonRepresentation(BsonType.ObjectId)]
+    [BsonElement("userId")]
     required public string UserId { get; set; }
 
     [BsonRepresentation(BsonType.ObjectId)]
+    [BsonElement("gridId")]
     required public string GridId { get; set; }
 
     [BsonElement("time")]

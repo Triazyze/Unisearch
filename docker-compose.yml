@@ -11,6 +11,9 @@ services:
 
   mongodb:
     image: mongo:8.0
+    environment:
+      # Contournement de l'incompatibilité MongoDB 8 / noyaux Linux 6.19 à 7.0.13 (SERVER-121912)
+      GLIBC_TUNABLES: "glibc.pthread.rseq=1"
     restart: unless-stopped
 
     healthcheck:

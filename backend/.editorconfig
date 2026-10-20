@@ -37,6 +37,7 @@ dotnet_diagnostic.SA1602.severity = none
 dotnet_diagnostic.SA1633.severity = none
 dotnet_diagnostic.SA1210.severity = none
 dotnet_diagnostic.SA1010.severity = none
+dotnet_diagnostic.SA1202.severity = none
 
 # Les fichiers de configuration utilisent deux espaces.
 [*.{json,yml,yaml}]
