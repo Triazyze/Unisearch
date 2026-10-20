@@ -58,4 +58,30 @@ prune:
 	docker system prune
 
 test:
-	$(TEST_COMPOSE) up --build --abort-on-container-exit --exit-code-from api --no-attach mongodb
+	@$(TEST_COMPOSE) up --build \
+		--abort-on-container-exit \
+		--exit-code-from api \
+		--no-attach mongodb > /tmp/unisearch-tests.log 2>&1; \
+	status=$$?; \
+	cat /tmp/unisearch-tests.log; \
+	awk ' \
+		/Passed!|Failed!/ { \
+			reports++; \
+			for (i = 1; i <= NF; i++) { \
+				if ($$i == "Failed:") failed += $$(i+1); \
+				if ($$i == "Passed:") passed += $$(i+1); \
+				if ($$i == "Skipped:") skipped += $$(i+1); \
+			} \
+		} \
+		END { \
+			if (reports == 0) { \
+				printf "\n\033[1;31m✘ Aucun résultat de test disponible (échec avant le rapport xUnit).\033[0m\n"; \
+			} else { \
+				printf "\n\033[1m=== RÉSULTATS DES TESTS ===\033[0m\n"; \
+				printf "\033[32m✔ Réussis : %d\033[0m\n", passed; \
+				printf "\033[31m✘ Échoués : %d\033[0m\n", failed; \
+				printf "\033[33m➜ Ignorés : %d\033[0m\n", skipped; \
+			} \
+		} \
+	' /tmp/unisearch-tests.log; \
+	exit $$status
