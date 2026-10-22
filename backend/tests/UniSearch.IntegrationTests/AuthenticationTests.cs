@@ -43,6 +43,15 @@ public class AuthenticationTests
             Assert.Equal(Role.Player, user.Role);
             Assert.NotEqual(request.Password, user.PasswordHash);
             Assert.False(string.IsNullOrWhiteSpace(user.PasswordHash));
+
+            var loginResponse = await client.PostAsJsonAsync(
+                "api/auth/login",
+                new LoginRequest { Identifier = username, Password = request.Password });
+            var login = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
+
+            Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
+            Assert.NotNull(login);
+            Assert.False(string.IsNullOrWhiteSpace(login.Token));
         }
         finally
         {

@@ -216,11 +216,15 @@ public class GridCreationTests
     public async Task CreateGrid_WhenNotAuthenticated_ReturnsUnauthorized()
     {
         using var client = _factory.CreateClient();
+        var gridsCollection = GetGridsCollection();
         var request = new GridCreationRequest { Size = 4, Difficulty = "easy", Words = ["CHAT"] };
 
+        var countBefore = await gridsCollection.CountDocumentsAsync(FilterDefinition<Grid>.Empty);
         var response = await client.PostAsJsonAsync("api/grids", request);
+        var countAfter = await gridsCollection.CountDocumentsAsync(FilterDefinition<Grid>.Empty);
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(countBefore, countAfter);
     }
 
     private IMongoCollection<Grid> GetGridsCollection()

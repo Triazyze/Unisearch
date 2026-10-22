@@ -197,6 +197,61 @@ public class GridVerificationTests
         Assert.Null(result);
     }
 
+    [Theory]
+    [MemberData(nameof(InvalidGridCases))]
+    public async Task VerifyGrid_WithInvalidData_PreservesExistingPlayerResult(
+        Action<GridVerificationRequest> modifyGrid,
+        ErrorResponse expectedError)
+    {
+        using var client = _factory.CreateClient();
+        var database = _factory.Services.GetRequiredService<IMongoDatabase>();
+        var playerResultsCollection = database.GetCollection<PlayerResult>("playerResults");
+        var usersCollection = database.GetCollection<User>("users");
+        var player = await usersCollection.Find(user => user.Username == "player").FirstOrDefaultAsync();
+        Assert.NotNull(player);
+
+        var gridId = "66f000000000000000000001";
+        var existingResult = new PlayerResult
+        {
+            Id = ObjectId.GenerateNewId().ToString(),
+            UserId = player.Id,
+            GridId = gridId,
+            Time = 12,
+            TraceAttempts = 4
+        };
+
+        await playerResultsCollection.DeleteManyAsync(result => result.UserId == player.Id && result.GridId == gridId);
+        await playerResultsCollection.InsertOneAsync(existingResult);
+
+        try
+        {
+            await AuthenticationHelper.AuthenticatePlayerAsync(client);
+            var grid = CreateValidGridRequest();
+            modifyGrid(grid);
+
+            var response = await client.PostAsJsonAsync($"api/grids/{gridId}/verification", grid);
+            var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+            var results = await playerResultsCollection
+                .Find(result => result.UserId == player.Id && result.GridId == gridId)
+                .ToListAsync();
+
+            Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+            Assert.NotNull(error);
+            Assert.Equal(expectedError.ErrorCode, error.ErrorCode);
+            Assert.Equal(expectedError.Message, error.Message);
+            var persistedResult = Assert.Single(results);
+            Assert.Equal(existingResult.Id, persistedResult.Id);
+            Assert.Equal(existingResult.UserId, persistedResult.UserId);
+            Assert.Equal(existingResult.GridId, persistedResult.GridId);
+            Assert.Equal(existingResult.Time, persistedResult.Time);
+            Assert.Equal(existingResult.TraceAttempts, persistedResult.TraceAttempts);
+        }
+        finally
+        {
+            await playerResultsCollection.DeleteManyAsync(result => result.UserId == player.Id && result.GridId == gridId);
+        }
+    }
+
     [Fact]
     public async Task VerifyGrid_WithWrongRole_ReturnsForbidden()
     {
@@ -235,9 +290,13 @@ public class GridVerificationTests
         var grid = CreateValidGridRequest();
         var gridId = "66f000000000000000000001";
 
+        var countBefore = await playerResultsCollection.CountDocumentsAsync(FilterDefinition<PlayerResult>.Empty);
+
         var response = await client.PostAsJsonAsync($"api/grids/{gridId}/verification", grid);
+        var countAfter = await playerResultsCollection.CountDocumentsAsync(FilterDefinition<PlayerResult>.Empty);
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(countBefore, countAfter);
     }
 
     [Fact]
