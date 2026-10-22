@@ -56,6 +56,8 @@ if (builder.Environment.IsDevelopment())
 }
 
 // Limite les appels aux endpoints API pour réduire les abus et les tentatives répétées.
+var apiRateLimitPermitCount = builder.Configuration.GetValue("API_RATE_LIMIT_PER_MINUTE", 60);
+
 builder.Services.AddRateLimiter(options =>
 {
     options.AddPolicy(ApiRateLimitPolicy, httpContext =>
@@ -63,7 +65,7 @@ builder.Services.AddRateLimiter(options =>
             httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 60,
+                PermitLimit = apiRateLimitPermitCount,
                 Window = TimeSpan.FromMinutes(1),
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                 QueueLimit = 0,
