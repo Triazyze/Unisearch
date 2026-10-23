@@ -14,3 +14,15 @@ build_backend:
     paths:
       - backend/publish/
     expire_in: 1 day
+
+# Check de la compilation du mobile, sans rien garder.
+# Expo utilise l'image de node pour compiler.
+check_frontend:
+  stage: build
+  image: node:24-bookworm-slim
+  tags:
+    - salle-101
+  script:
+    - cd frontend
+    - npm ci
+    - npx tsc --noEmit
