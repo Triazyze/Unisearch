@@ -34,6 +34,10 @@ down: check-env
 	$(COMPOSE) down
 
 
+test-down:
+	$(TEST_COMPOSE) down --remove-orphans
+
+
 build: check-env
 	$(COMPOSE) build
 
