@@ -1,0 +1,16 @@
+stages:
+  - build
+
+build_backend:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  tags:
+    - salle-101
+  script:
+    - cd backend
+    - dotnet restore src/UniSearch.Api/UniSearch.Api.csproj
+    - dotnet publish src/UniSearch.Api/UniSearch.Api.csproj -c Release -o publish --no-restore
+  artifacts:
+    paths:
+      - backend/publish/
+    expire_in: 1 day
