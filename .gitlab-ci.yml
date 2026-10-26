@@ -85,8 +85,9 @@ publish_backend:
   only:
     - PRO403-223_Pipeline
 
-check_ssh:
+deploy_production:
   stage: deploy
+  dependencies: []
   image: alpine:3.20
   tags:
     - salle-101
@@ -96,5 +97,8 @@ check_ssh:
     - cp "$SSH_PRIVATE_KEY" ~/.ssh/id_ed25519
     - chmod 600 ~/.ssh/id_ed25519
     - cp "$SSH_KNOWN_HOSTS" ~/.ssh/known_hosts
+    - cp "$ENV_PROD_FILE" .env.prod
+    - chmod 600 .env.prod
   script:
-    - ssh -o BatchMode=yes -o IdentitiesOnly=yes -i ~/.ssh/id_ed25519 uha40@10.6.0.15 "echo 'Connexion SSH réussie'"
+    - scp -i ~/.ssh/id_ed25519 .env.prod docker-compose.yml docker-compose.prod.yml "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/"
+    - ssh -o BatchMode=yes -o IdentitiesOnly=yes -i ~/.ssh/id_ed25519 $DEPLOY_USER@$DEPLOY_HOST "ls -la '$DEPLOY_PATH'"
