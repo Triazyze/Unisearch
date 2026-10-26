@@ -56,3 +56,5 @@ test_backend:
     when: always
     paths:
       - backend/test-results/
+    reports:
+      junit: backend/test-results/*.xml
