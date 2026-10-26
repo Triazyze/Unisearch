@@ -89,3 +89,7 @@ test:
 		} \
 	' /tmp/unisearch-tests.log; \
 	exit $$status
+
+test-report:
+	@mkdir -p backend/test-results
+	@docker cp unisearch-test-api-1:/app/test-results/. backend/test-results/

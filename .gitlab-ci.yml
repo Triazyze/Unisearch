@@ -28,13 +28,17 @@ check_frontend:
     - npm ci
     - npx tsc --noEmit
 
+# On télécharge l'image docker, puis execute docker in docker.
+# Dependcies est vide car on ne veux pas télécharger les artefacts du build.
 test_backend:
   stage: test
+  dependencies: []
   image: docker:29-cli
   tags:
     - salle-101
   services:
     - name: docker:29-dind
+
   variables:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
@@ -45,5 +49,10 @@ test_backend:
   script:
     - make test
   after_script:
+    - make test-report
     - make test-down
     - rm -f .env.test
+  artifacts:
+    when: always
+    paths:
+      - backend/test-results/

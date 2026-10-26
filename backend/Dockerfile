@@ -28,8 +28,7 @@ FROM base AS test
 COPY ./tests ./tests
 COPY ./UniSearch.sln ./
 
-ENTRYPOINT ["dotnet", "test", "UniSearch.sln"]
-
+ENTRYPOINT ["dotnet", "test", "UniSearch.sln", "--logger", "junit;LogFilePath=/app/test-results/{assembly}-results.xml", "--results-directory", "/app/test-results"]
 
 # Stage 4: Build de production
 FROM base AS build
