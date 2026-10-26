@@ -97,8 +97,7 @@ deploy_production:
     - cp "$SSH_PRIVATE_KEY" ~/.ssh/id_ed25519
     - chmod 600 ~/.ssh/id_ed25519
     - cp "$SSH_KNOWN_HOSTS" ~/.ssh/known_hosts
-    - cp "$ENV_PROD_FILE" .env.prod
-    - chmod 600 .env.prod
+    - install -m 600 "$ENV_PROD_FILE" .env.prod
   script:
     - scp -i ~/.ssh/id_ed25519 .env.prod docker-compose.yml docker-compose.prod.yml "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/"
     - ssh -o BatchMode=yes -o IdentitiesOnly=yes -i ~/.ssh/id_ed25519 $DEPLOY_USER@$DEPLOY_HOST "ls -la '$DEPLOY_PATH'"
