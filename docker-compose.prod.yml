@@ -1,7 +1,7 @@
 services:
   api:
-    build:
-      target: prod
+    build: !reset null
+    image: 10.6.0.9:5000/johann-valle/unisearch-api:${APP_VERSION}
 
     environment:
       MONGODB_URI: ${MONGODB_URI}

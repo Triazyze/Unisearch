@@ -83,3 +83,17 @@ publish_backend:
     - docker push 10.6.0.9:5000/johann-valle/unisearch-api:latest
   only:
     - PRO403-223_Pipeline
+
+check_ssh:
+  stage: deploy
+  image: alpine:3.20
+  tags:
+    - salle-101
+  before_script:
+    - apk add --no-cache openssh-client
+    - install -m 700 -d ~/.ssh
+    - cp "$SSH_PRIVATE_KEY" ~/.ssh/id_ed25519
+    - chmod 600 ~/.ssh/id_ed25519
+    - cp "$SSH_KNOWN_HOSTS" ~/.ssh/known_hosts
+  script:
+    - ssh -o BatchMode=yes -o IdentitiesOnly=yes -i ~/.ssh/id_ed25519 uha40@10.6.0.15 "echo 'Connexion SSH réussie'"
