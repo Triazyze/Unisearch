@@ -1,6 +1,7 @@
 stages:
   - build
   - test
+  - publish
 
 build_backend:
   stage: build
@@ -38,7 +39,6 @@ test_backend:
     - salle-101
   services:
     - name: docker:29-dind
-
   variables:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
@@ -58,3 +58,28 @@ test_backend:
       - backend/test-results/
     reports:
       junit: backend/test-results/*.xml
+
+publish_backend:
+  stage: publish
+  dependencies: []
+  image: docker:29-cli
+  services:
+    - name: docker:29-dind
+      command: ["--insecure-registry=10.6.0.9:5000"]
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+  tags:
+    - salle-101
+  script:
+    - |
+      docker build \
+        --target prod \
+        -t 10.6.0.9:5000/johann-valle/unisearch-api:$CI_COMMIT_SHORT_SHA \
+        -t 10.6.0.9:5000/johann-valle/unisearch-api:latest \
+        -f backend/Dockerfile \
+        backend/
+    - docker push 10.6.0.9:5000/johann-valle/unisearch-api:$CI_COMMIT_SHORT_SHA
+    - docker push 10.6.0.9:5000/johann-valle/unisearch-api:latest
+  only:
+    - PRO403-223_Pipeline
