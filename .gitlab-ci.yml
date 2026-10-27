@@ -65,12 +65,23 @@ publish_backend:
   image: docker:29-cli
   services:
     - name: docker:29-dind
-      command: ["--insecure-registry=${REGISTRY_URL}"]
+      alias: docker
+      variables:
+        HEALTHCHECK_TCP_PORT: "2375"
+      command: ["--insecure-registry=10.6.0.9:5000"]
   variables:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
   tags:
     - salle-101
+  before_script:
+  - |
+    for i in $(seq 1 15); do
+      docker info > /dev/null 2>&1 && break
+      echo "Attente du démarrage de Docker..."
+      sleep 2
+    done
+  - docker info
   script:
     - |
       docker build \
