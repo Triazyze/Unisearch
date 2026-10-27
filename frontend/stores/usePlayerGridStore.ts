@@ -1,5 +1,8 @@
 import { create } from 'zustand';
-import { syncPendingPlayerGridsAsync } from '../services/grids/playerGridService';
+import {
+  syncPendingPlayerGridsAsync,
+  type PendingGridSynchronizationResult,
+} from '../services/grids/playerGridService';
 import { getTestPackAsync } from '../services/packs/playerPackService';
 import {
   readPlayerGridAsync,
@@ -20,7 +23,10 @@ type PlayerGridState = {
   clearSynchronizationMessage: () => void;
   loadTestPackAsync: (userId: string) => Promise<void>;
   refreshLocalGridsAsync: (userId: string) => Promise<void>;
-  syncPendingGridsAsync: (userId: string, showNotification?: boolean) => Promise<string[]>;
+  syncPendingGridsAsync: (
+    userId: string,
+    showNotification?: boolean,
+  ) => Promise<PendingGridSynchronizationResult>;
 };
 
 export const usePlayerGridStore = create<PlayerGridState>()((set, get) => ({
@@ -37,26 +43,26 @@ export const usePlayerGridStore = create<PlayerGridState>()((set, get) => ({
 
   async loadTestPackAsync(userId) {
     set({ errorMessage: null, isLoading: true });
+    let hasLocalPack = true;
 
-    let downloadErrorMessage: string | null = null;
+    try {
+      await get().refreshLocalGridsAsync(userId);
+    } catch {
+      // Le premier téléchargement peut ne pas avoir encore créé de pack local.
+      hasLocalPack = false;
+    }
 
     try {
       const testPack = await getTestPackAsync();
       await saveDownloadedPackAsync(userId, testPack);
-    } catch (error) {
-      downloadErrorMessage =
-        error instanceof Error ? error.message : 'Le pack de test est indisponible.';
-    }
-
-    try {
       await get().refreshLocalGridsAsync(userId);
     } catch (error) {
-      set({
-        errorMessage:
-          downloadErrorMessage ??
-          (error instanceof Error ? error.message : 'Le pack de test est indisponible.'),
-        grids: null,
-      });
+      if (!hasLocalPack) {
+        set({
+          errorMessage:
+            error instanceof Error ? error.message : 'Le pack de test est indisponible.',
+        });
+      }
     } finally {
       set({ isLoading: false });
     }
@@ -83,19 +89,19 @@ export const usePlayerGridStore = create<PlayerGridState>()((set, get) => ({
 
   async syncPendingGridsAsync(userId, showNotification = false) {
     if (get().isSynchronizing) {
-      return [];
+      return { hasRetryableFailure: false, validatedGridIds: [] };
     }
 
     set({ isSynchronizing: true });
 
     try {
-      const validatedGridIds = await syncPendingPlayerGridsAsync(userId);
+      const synchronizationResult = await syncPendingPlayerGridsAsync(userId);
 
-      if (showNotification && validatedGridIds.length > 0) {
+      if (showNotification && synchronizationResult.validatedGridIds.length > 0) {
         const synchronizationMessage =
-          validatedGridIds.length === 1
+          synchronizationResult.validatedGridIds.length === 1
             ? '1 grille a été synchronisée.'
-            : `${validatedGridIds.length} grilles ont été synchronisées.`;
+            : `${synchronizationResult.validatedGridIds.length} grilles ont été synchronisées.`;
 
         set({
           synchronizationMessage,
@@ -105,7 +111,7 @@ export const usePlayerGridStore = create<PlayerGridState>()((set, get) => ({
 
       await get().refreshLocalGridsAsync(userId);
 
-      return validatedGridIds;
+      return synchronizationResult;
     } finally {
       set({ isSynchronizing: false });
     }

@@ -25,6 +25,11 @@ type GridVerificationTrace = {
   word: string;
 };
 
+export type PendingGridSynchronizationResult = {
+  hasRetryableFailure: boolean;
+  validatedGridIds: string[];
+};
+
 export async function verifyPlayerGridAsync(grid: LocalPlayerGrid): Promise<string> {
   if (apiBaseUrl === undefined || apiBaseUrl.length === 0) {
     throw new ApiRequestError("La requête de validation n'a pas réussi à atteindre le serveur.");
@@ -47,9 +52,12 @@ export async function verifyPlayerGridAsync(grid: LocalPlayerGrid): Promise<stri
   }
 }
 
-export async function syncPendingPlayerGridsAsync(userId: string): Promise<string[]> {
+export async function syncPendingPlayerGridsAsync(
+  userId: string,
+): Promise<PendingGridSynchronizationResult> {
   const pendingGridIds = await readPendingGridIdsAsync(userId);
   const validatedGridIds: string[] = [];
+  let hasRetryableFailure = false;
 
   for (const gridId of pendingGridIds) {
     const grid = await readPlayerGridAsync(userId, gridId);
@@ -73,10 +81,11 @@ export async function syncPendingPlayerGridsAsync(userId: string): Promise<strin
       }
 
       // La grille reste en attente afin qu'une prochaine synchronisation puisse la renvoyer.
+      hasRetryableFailure = true;
     }
   }
 
-  return validatedGridIds;
+  return { hasRetryableFailure, validatedGridIds };
 }
 
 function createGridVerificationRequest(grid: LocalPlayerGrid): GridVerificationRequest {

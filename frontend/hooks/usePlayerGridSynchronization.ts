@@ -17,7 +17,7 @@ export function usePlayerGridSynchronization(userId: string | null): void {
 
     async function synchronizeWhenOnline(networkState: NetInfoState) {
       const isOnline =
-        networkState.isConnected === true && networkState.isInternetReachable !== false;
+        networkState.isConnected === true && networkState.isInternetReachable === true;
 
       if (!isOnline) {
         wasOnlineReference.current = false;
@@ -31,9 +31,11 @@ export function usePlayerGridSynchronization(userId: string | null): void {
       wasOnlineReference.current = true;
 
       try {
-        await syncPendingGridsAsync(currentUserId, true);
+        const synchronizationResult = await syncPendingGridsAsync(currentUserId, true);
+        wasOnlineReference.current = !synchronizationResult.hasRetryableFailure;
       } catch {
-        // Une prochaine transition réseau relancera la synchronisation.
+        // L'état est réinitialisé afin que le prochain événement réseau puisse relancer la synchronisation.
+        wasOnlineReference.current = false;
       }
     }
 

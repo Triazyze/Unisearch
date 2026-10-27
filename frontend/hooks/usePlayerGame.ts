@@ -33,6 +33,7 @@ type PlayerGame = {
 
 export function usePlayerGame(gridId: string): PlayerGame {
   const user = useAuthStore((state) => state.user);
+  const refreshLocalGridsAsync = usePlayerGridStore((state) => state.refreshLocalGridsAsync);
   const syncPendingGridsAsync = usePlayerGridStore((state) => state.syncPendingGridsAsync);
   const [grid, setGrid] = useState<LocalPlayerGrid | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -137,6 +138,12 @@ export function usePlayerGame(gridId: string): PlayerGame {
       }
 
       try {
+        await refreshLocalGridsAsync(currentUser.id);
+      } catch {
+        // La partie est déjà enregistrée : un échec de rafraîchissement ne doit pas annuler sa mise en attente.
+      }
+
+      try {
         await syncPendingGridsAsync(currentUser.id);
         const synchronizedGrid = await readPlayerGridAsync(currentUser.id, pendingGrid.gridId);
 
@@ -161,7 +168,7 @@ export function usePlayerGame(gridId: string): PlayerGame {
     }
 
     void saveCompletedGridAsync();
-  }, [gameState, grid, syncPendingGridsAsync, user]);
+  }, [gameState, grid, refreshLocalGridsAsync, syncPendingGridsAsync, user]);
 
   function handleTraceCompleted(start: PlayerGridCoordinate, end: PlayerGridCoordinate) {
     if (grid === null) {
