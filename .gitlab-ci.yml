@@ -65,10 +65,9 @@ publish_backend:
   image: docker:29-cli
   services:
     - name: docker:29-dind
-      alias: docker
-      variables:
-        HEALTHCHECK_TCP_PORT: "2375"
-      command: ["--insecure-registry=10.6.0.9:5000"]
+      entrypoint: ["/bin/sh", "-c"]
+      command:
+        - 'exec dockerd-entrypoint.sh --insecure-registry="$REGISTRY_URL"'
   variables:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
@@ -102,7 +101,7 @@ deploy_production:
   tags:
     - salle-101
   before_script:
-    - apk add --no-cache openssh-client
+    - apk add --no-cache openssh-client curl
     - install -m 700 -d ~/.ssh
     - cp "$SSH_PRIVATE_KEY" ~/.ssh/id_ed25519
     - chmod 600 ~/.ssh/id_ed25519
