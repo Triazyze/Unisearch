@@ -16,8 +16,10 @@ export function usePlayerGridSynchronization(userId: string | null): void {
     wasOnlineReference.current = false;
 
     async function synchronizeWhenOnline(networkState: NetInfoState) {
+      // Android peut fournir null pendant la vérification de l'accès Internet.
+      // Le délai HTTP et le réarmement après échec évitent qu'un tel état bloque la prochaine tentative.
       const isOnline =
-        networkState.isConnected === true && networkState.isInternetReachable === true;
+        networkState.isConnected === true && networkState.isInternetReachable !== false;
 
       if (!isOnline) {
         wasOnlineReference.current = false;
