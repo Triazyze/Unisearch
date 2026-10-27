@@ -65,9 +65,9 @@ publish_backend:
   image: docker:29-cli
   services:
     - name: docker:29-dind
-      entrypoint: ["/bin/sh", "-c"]
-      command:
-        - 'exec dockerd-entrypoint.sh --insecure-registry="$REGISTRY_URL"'
+      command: ["--insecure-registry=10.6.0.9:5000"]
+      variables:
+        HEALTHCHECK_TCP_PORT: "2375"
   variables:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
@@ -92,7 +92,7 @@ publish_backend:
     - docker push "$REGISTRY_URL/johann-valle/unisearch-api:$CI_COMMIT_SHORT_SHA"
     - docker push "$REGISTRY_URL/johann-valle/unisearch-api:latest"
   rules:
-    - if: '$CI_COMMIT_BRANCH == "PRO403-223_Pipeline"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
 
 deploy_production:
   stage: deploy
@@ -143,4 +143,4 @@ deploy_production:
     # Vérification de l'API.
     - curl -fsS --retry 12 --retry-delay 5 --retry-all-errors "http://$DEPLOY_HOST:$API_PORT/health"
   rules:
-    - if: '$CI_COMMIT_BRANCH == "PRO403-223_Pipeline"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
